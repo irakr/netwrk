@@ -4,24 +4,26 @@ A collection of useful cross platform networking tools.
 **Steps to build**
 
 1. Each tool may be individually compiled. For example, ftp-cli is compiled as shown below: 
-```
-  $ cd tools/ftp-cli
-  $ make
-```
+   ```
+   $ cd tools/ftp-cli
+   $ make
+   ```
 
-**Cross compiling for ARM based systems**
+**Cross compiling(Example: For raspberry pi)**
 
-1. First setup the repo [irakr/RPi-Cross-Build-Environment](https://github.com/irakr/RPi-Cross-Build-Environment) in a separate directory.
-2. Before compiling, set the TOOLCHAIN_PREFIX and SYSROOT_DIR appropriately in the Makefile(s).  
-   Example:  
-   TOOLCHAIN_PREFIX=arm-linux-gnueabihf-
-   SYSROOT_DIR=/home/abc/workspace/raspi/sys
-   
+1. First setup sysroot for the target platform. You can create a sysroot using the help of this repo ->
+   [irakr/RPi-Cross-Build-Environment](https://github.com/irakr/RPi-Cross-Build-Environment).
+2. Set the following environment variables:  
+   ```
+   export SYSROOT_PATH=<path-to-sysroot>
+   ```
 3. Compile:
-```
-  $ make
-```
+   ```
+   $ make PLATFORM=raspi
+   ```
 4. To deploy the binaries, the TARGET_IP and TARGET_USER environment variables must be set first. Then run:
-```
-  $ make deploy
-```
+   ```
+   $ make deploy
+   ```
+   By default, the binaries will be under to `/opt/netwrk` in the target system.
+

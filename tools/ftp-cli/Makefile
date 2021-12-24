@@ -48,7 +48,6 @@ CPPFLAGS = $(DEFINES) $(INCLUDES)
 # Set debug mode
 ifeq ($(debug), y)
 	CFLAGS += -g -O0 -ggdb
-	DEFINES += -DDEBUG_ON
 	OUT := $(OUT)-dbg
 endif
 
@@ -73,7 +72,7 @@ clean:
 	-rm -rf $(OBJECTS) $(OUT) *.o
 
 DEPLOY_FILES = $(OUT)
-TARGET_DEPLOY_DIR = /home/$(TARGET_USER)/netwrk/ftp-cli
+TARGET_DEPLOY_PATH = /opt/netwrk/ftp-cli
 
 .PHONY: deploy
 deploy:
@@ -82,5 +81,5 @@ deploy:
 		echo "ERROR: Cannot find environment variables TARGET_IP and TARGET_USER.";\
 		exit 1;\
 	fi
-	ssh $(TARGET_USER)@$(TARGET_IP) mkdir -p $(TARGET_DEPLOY_DIR)
-	scp $(DEPLOY_FILES) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DEPLOY_DIR)
+	ssh $(TARGET_USER)@$(TARGET_IP) mkdir -p $(TARGET_DEPLOY_PATH)
+	scp $(DEPLOY_FILES) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DEPLOY_PATH)
