@@ -1,5 +1,3 @@
-SHELL = /bin/bash
-
 PROJECT_ROOT := $(PWD)
 
 # Assuming your project source files are in the current directory.
@@ -10,57 +8,49 @@ OBJECTS = $(SOURCES:.c=.o)
 # Assign your project's output binary name
 OUT = ftp-cli
 
-# Root directory of the build environment.
-# Hint: Where your sysroot is.
-# Another hint: Where you cloned this repo.
-DEVENV_DIR = /home/irak101/workspace/raspi/sys
+# SYSROOT_PATH is the path to sysroot of the target platform and
+# is set as an environment variable.
+ifdef PLATFORM
+SYSROOT = --sysroot=$(SYSROOT_PATH)
+endif
 
-SYSROOT_DIR = $(DEVENV_DIR)/sysroot
-SYSROOT = --sysroot=$(SYSROOT_DIR)
+ifeq ("$(PLATFORM)","raspi")
+include raspi.mk
+endif
 
-# Toolchain prefix. You can assign whatever you're using.
-# Hardcoded one for now.
-TOOLCHAIN_PREFIX = arm-linux-gnueabihf-
-
+# TOOLCHAIN_PREFIX is set by platform specific mk file.
+# By default it uses this system's toolchain, i.e., TOOLCHAIN_PREFIX is empty.
 CC = $(TOOLCHAIN_PREFIX)gcc
+CXX = $(TOOLCHAIN_PREFIX)g++
 AR = $(TOOLCHAIN_PREFIX)ar
 
-# Library linkages
-LIB_DIRS = -L$(MISC_DIR)/lib -L$(SYSROOT_DIR)/usr/lib/arm-linux-gnueabihf \
-	-L$(SYSROOT_DIR)/opt/vc/lib -L$(SYSROOT_DIR)/usr/local/lib
-
 LIBS = $(LIB_DIRS)	\
-	-Wl,--start-group \
-	-lpthread -ldl	\
-	-Wl,--end-group
+	$(PLATFORM_LIBS)
 
-LFLAGS = --sysroot=$(SYSROOT_DIR) \
-	-Wl,-rpath-link,$(SYSROOT_DIR)/opt/vc/lib \
-	-Wl,-rpath-link,$(SYSROOT_DIR)/usr/lib/arm-linux-gnueabihf \
-	-Wl,-rpath-link,$(SYSROOT_DIR)/lib/arm-linux-gnueabihf
+LFLAGS = $(SYSROOT) \
+	$(PLATFORM_LFLAGS)
 
 # Compiler flags
 CFLAGS = -std=c11 -Wall -fPIC \
-	$(SYSROOT) $(EXTRA_CFLAGS)
+	$(SYSROOT)
 
 # Custom macros
 DEFINES =
 
 # Custom macro definitions
-# XXX... Unused as for now.
 CONFIGS = 
 
-# Command line arg parse
+# Directories for required header files
+INCLUDES += $(PLATFORM_INCLUDES)
+
+CPPFLAGS = $(DEFINES) $(INCLUDES)
+
+# Set debug mode
 ifeq ($(debug), y)
 	CFLAGS += -g -O0 -ggdb
 	DEFINES += -DDEBUG_ON
 	OUT := $(OUT)-dbg
 endif
-
-# Directories for required header files
-INCLUDES = -I$(SYSROOT_DIR)/usr/include/arm-linux-gnueabihf
-
-CPPFLAGS = $(DEFINES) $(INCLUDES)
 
 # Generate intermediate object files
 %.o: %.c
