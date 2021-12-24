@@ -13,7 +13,7 @@ OUT = ftp-cli
 # Root directory of the build environment.
 # Hint: Where your sysroot is.
 # Another hint: Where you cloned this repo.
-DEVENV_DIR = /mnt/c/workspace/raspi/sys
+DEVENV_DIR = /home/irak101/workspace/raspi/sys
 
 SYSROOT_DIR = $(DEVENV_DIR)/sysroot
 SYSROOT = --sysroot=$(SYSROOT_DIR)

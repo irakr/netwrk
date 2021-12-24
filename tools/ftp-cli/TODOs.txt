@@ -1,0 +1,2 @@
+- Create heirarchical Makefiles.
+- Set SYSROOT_DIR according TOOLCHAIN_PREFIX.
