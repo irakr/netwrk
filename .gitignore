@@ -37,6 +37,7 @@
 **/*.i*86
 **/*.x86_64
 **/*.hex
+tools/ftp-cli/ftp-cli
 
 # Debug files
 **/*.dSYM/
