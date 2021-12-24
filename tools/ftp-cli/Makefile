@@ -1,3 +1,5 @@
+SHELL = /bin/bash
+
 PROJECT_ROOT := $(PWD)
 
 # Assuming your project source files are in the current directory.
@@ -72,7 +74,7 @@ clean:
 	-rm -rf $(OBJECTS) $(OUT) *.o
 
 DEPLOY_FILES = $(OUT)
-TARGET_DEPLOY_PATH = /opt/netwrk/ftp-cli
+TARGET_DEPLOY_PATH = /home/$(TARGET_USER)/netwrk/ftp-cli
 
 .PHONY: deploy
 deploy:

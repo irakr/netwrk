@@ -25,5 +25,5 @@ A collection of useful cross platform networking tools.
    ```
    $ make deploy
    ```
-   By default, the binaries will be under to `/opt/netwrk` in the target system.
+   By default, the binaries will be copied to `/home/$(TARGET_USER)/netwrk` in the target system.
 
