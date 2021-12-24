@@ -83,7 +83,7 @@ clean:
 	-rm -rf $(OBJECTS) $(OUT) *.o
 
 DEPLOY_FILES = $(OUT)
-TARGET_DEPLOY_DIR = /home/$(TARGET_USER)/my-apps/ftp-cli
+TARGET_DEPLOY_DIR = /home/$(TARGET_USER)/netwrk/ftp-cli
 
 .PHONY: deploy
 deploy:
@@ -94,10 +94,3 @@ deploy:
 	fi
 	ssh $(TARGET_USER)@$(TARGET_IP) mkdir -p $(TARGET_DEPLOY_DIR)
 	scp $(DEPLOY_FILES) $(TARGET_USER)@$(TARGET_IP):$(TARGET_DEPLOY_DIR)
-
-.PHONY: check_env
-check_env:
-	if [[ "${TARGET_IP}" == "" || "${TARGET_USER}" == "" ]]; then\
-		echo "ERROR: Environment variables TARGET_IP and TARGET_USER not set.";\
-		exit 1;\
-	fi
