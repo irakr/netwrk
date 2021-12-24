@@ -55,14 +55,16 @@ endif
 
 # Generate intermediate object files
 %.o: %.c
-	@echo "\n-----------------------------------------"
-	@echo $<
+	@echo ""
+	@echo "-----------------------------------------"
+	@echo Compiling: $<
 	@echo "-------------------------------------------"
 	$(CC) $(CPPFLAGS) $(CFLAGS) $< -c -o $@ $(LIBS)
 
 $(OUT): $(OBJECTS)
-	@echo "\n-----------------------------------------"
-	@echo "              Linking                   "
+	@echo ""
+	@echo "-----------------------------------------"
+	@echo "       Linking everything                  "
 	@echo "-------------------------------------------"
 	$(CC) $(LFLAGS) $(CFLAGS) $^ -o $@ $(LIBS)
 
