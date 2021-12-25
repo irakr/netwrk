@@ -1,18 +1,16 @@
 #include <stdio.h>
-
-#define MAX_LEN_USERNAME	128
-#define MAX_LEN_PASSWORD	256
+#include "netwrk/ftp.h"
 
 int main()
 {
-	char username[MAX_LEN_USERNAME], password[MAX_LEN_PASSWORD];
+	ftp_user_info_t user_info;
 
 	printf("################ Simple FTP client ################\n");
 	
 	printf("Username: ");
-	scanf("%s", username);
+	scanf("%s", user_info.username);
 	printf("Password: ");
-	scanf("%s", password);
+	scanf("%s", user_info.password);
 	
 	return 0;
 }

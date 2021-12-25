@@ -1,6 +1,6 @@
 SHELL = /bin/bash
 
-PROJECT_ROOT := $(PWD)
+PROJECT_ROOT := $(PWD)/../..
 
 # Assuming your project source files are in the current directory.
 SOURCES = $(shell find . -name '*.c')
@@ -43,7 +43,7 @@ DEFINES =
 CONFIGS = 
 
 # Directories for required header files
-INCLUDES += $(PLATFORM_INCLUDES)
+INCLUDES += -I$(PROJECT_ROOT)/common $(PLATFORM_INCLUDES)
 
 CPPFLAGS = $(DEFINES) $(INCLUDES)
 
