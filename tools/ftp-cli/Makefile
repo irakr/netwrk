@@ -2,9 +2,16 @@ SHELL = /bin/bash
 
 PROJECT_ROOT := $(PWD)/../..
 
-# Assuming your project source files are in the current directory.
+# Source files located in common/netwrk
+LIB_SOURCES = $(shell find ${PROJECT_ROOT}/common/netwrk -name '*.c')
+
+# Source files in current directory.
 SOURCES = $(shell find . -name '*.c')
 
+# All source files
+SOURCES += $(LIB_SOURCES)
+
+# Object files
 OBJECTS = $(SOURCES:.c=.o)
 
 # Assign your project's output binary name
