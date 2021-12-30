@@ -19,13 +19,23 @@ OUT = ftp-cli
 
 # SYSROOT_PATH is the path to sysroot of the target platform and
 # is set as an environment variable.
-ifdef PLATFORM
 SYSROOT = --sysroot=$(SYSROOT_PATH)
+
+#
+# PLATFORM is the part of the filename of a platform specific
+# makefile before .mk
+#
+# By default, PLATFORM is set to linux-x86_64 if:
+# - PLATFORM == ""
+# - PLATFORM == "linux"
+#
+ifeq ("$(PLATFORM)","")
+override PLATFORM=linux-x86_64
+else ifeq ("$(PLATFORM)","linux")
+override PLATFORM=linux-x86_64
 endif
 
-ifeq ("$(PLATFORM)","raspi")
-include raspi.mk
-endif
+include $(PLATFORM).mk
 
 # TOOLCHAIN_PREFIX is set by platform specific mk file.
 # By default it uses this system's toolchain, i.e., TOOLCHAIN_PREFIX is empty.
@@ -33,7 +43,7 @@ CC = $(TOOLCHAIN_PREFIX)gcc
 CXX = $(TOOLCHAIN_PREFIX)g++
 AR = $(TOOLCHAIN_PREFIX)ar
 
-LIBS = $(LIB_DIRS)	\
+LIBS = -L$(SYSROOT_DIR)/usr/local/lib \
 	$(PLATFORM_LIBS)
 
 LFLAGS = $(SYSROOT) \
@@ -50,7 +60,10 @@ DEFINES =
 CONFIGS = 
 
 # Directories for required header files
-INCLUDES += -I$(PROJECT_ROOT)/common $(PLATFORM_INCLUDES)
+INCLUDES += -I$(PROJECT_ROOT)/common \
+	-I$(SYSROOT_PATH)/usr/include/glib-2.0 \
+	-I$(SYSROOT_PATH)/usr/lib/x86_64-linux-gnu/glib-2.0/include \
+	$(PLATFORM_INCLUDES)
 
 CPPFLAGS = $(DEFINES) $(INCLUDES)
 
