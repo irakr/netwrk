@@ -4,6 +4,8 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
+#define NK_MAX_TCP_PKT_SIZE		1024
+
 /**
  * @brief Creates a TCP socket and returns the socket descriptor.
  * 
@@ -20,7 +22,7 @@ int NK_tcp_create_socket();
  * @param port Port of the target server.
  * @return int New connection's socket descriptor. -1 on error.
  */
-int NK_tcp_connect_server(int sock_fd, const char* ip, int port);
+int NK_tcp_connect(int sock_fd, const char* ip, int port);
 
 /**
  * @brief Closes the connection to the server on the socket descriptor

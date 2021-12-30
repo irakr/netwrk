@@ -13,7 +13,7 @@ int NK_tcp_create_socket()
     return sock_fd;
 }
 
-int NK_tcp_connect_server(int sock_fd, const char* ip, int port)
+int NK_tcp_connect(int sock_fd, const char* ip, int port)
 {
     struct sockaddr_in remote = {0};
     
@@ -30,7 +30,7 @@ int NK_tcp_connect_server(int sock_fd, const char* ip, int port)
     return connect(sock_fd, (struct sockaddr*)&remote, sizeof(struct sockaddr_in));
 }
 
-int NK_tcp_disconnect_server(int conn_sock_fd)
+int NK_tcp_disconnect(int conn_sock_fd)
 {
     if(conn_sock_fd < 0)
         return -1;

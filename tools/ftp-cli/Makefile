@@ -57,7 +57,7 @@ CPPFLAGS = $(DEFINES) $(INCLUDES)
 # Set debug mode
 ifeq ($(debug), y)
 	CFLAGS += -g -O0 -ggdb
-	OUT := $(OUT)-dbg
+	OUT := $(OUT)
 endif
 
 # Generate intermediate object files
