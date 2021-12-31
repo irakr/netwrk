@@ -37,13 +37,16 @@ endif
 
 include $(PLATFORM).mk
 
-# TOOLCHAIN_PREFIX is set by platform specific mk file.
+# TOOLCHAIN_PREFIX is set by platform specific mk files.
 # By default it uses this system's toolchain, i.e., TOOLCHAIN_PREFIX is empty.
 CC = $(TOOLCHAIN_PREFIX)gcc
 CXX = $(TOOLCHAIN_PREFIX)g++
 AR = $(TOOLCHAIN_PREFIX)ar
 
 LIBS = -L$(SYSROOT_DIR)/usr/local/lib \
+	-Wl,--start-group \
+	-lpthread -lglib-2.0 \
+	-Wl,--end-group \
 	$(PLATFORM_LIBS)
 
 LFLAGS = $(SYSROOT) \
@@ -62,7 +65,6 @@ CONFIGS =
 # Directories for required header files
 INCLUDES += -I$(PROJECT_ROOT)/common \
 	-I$(SYSROOT_PATH)/usr/include/glib-2.0 \
-	-I$(SYSROOT_PATH)/usr/lib/x86_64-linux-gnu/glib-2.0/include \
 	$(PLATFORM_INCLUDES)
 
 CPPFLAGS = $(DEFINES) $(INCLUDES)
@@ -79,14 +81,14 @@ endif
 	@echo "-----------------------------------------"
 	@echo Compiling: $<
 	@echo "-------------------------------------------"
-	$(CC) $(CPPFLAGS) $(CFLAGS) $< -c -o $@ $(LIBS)
+	$(CC) $(CPPFLAGS) $(CFLAGS) $< -c -o $@
 
 $(OUT): $(OBJECTS)
 	@echo ""
 	@echo "-----------------------------------------"
 	@echo "       Linking everything                  "
 	@echo "-------------------------------------------"
-	$(CC) $(LFLAGS) $(CFLAGS) $^ -o $@ $(LIBS)
+	$(CC) $(LFLAGS) $(CFLAGS) $(LIBS) $^ -o $@
 
 .PHONY: build
 build: $(OUT)
