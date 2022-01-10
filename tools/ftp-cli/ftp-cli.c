@@ -6,38 +6,51 @@
 
 // Test server
 #define FTP_SERVER_IP	"35.163.228.146"
-static char recv_buff[NK_MAX_TCP_PKT_SIZE];
+#define FTP_SERVER_PORT	21
+
+#define MAX_CMD_LEN		2049
+
+int shell_input(char *in, ssize_t max_len)
+{
+	int len = 0;
+	if( !in || (max_len <= 0) ) {
+		fprintf(stderr, "ERROR: %s(): Invalid function argument.", __func__);
+		return -1;
+	}
+	do {
+		fflush(stdin);
+		fgets(in, max_len, stdin);
+		len = strlen(in);
+		in[len - 1] = '\0';
+	} while(len <= 0);
+	return len;
+}
 
 int main()
 {
-	NK_ftp_user_info_t user_info;
-	int tcp_sock_fd;
-	int disconnect = 0;
+	NK_tcp_connection_t tcp_conn;
+	// NK_ftp_user_info_t user_info;
+	char input_cmd[MAX_CMD_LEN];
+	int cmd_len = 0, exit = 0;
 
-	printf("################ Simple FTP client ################\n");
+	printf("################ Simple FTP client - by irakr ################\n");
 	
-	printf("Username: ");
-	scanf("%s", user_info.username);
-	printf("Password: ");
-	scanf("%s", user_info.password);
-	
-	tcp_sock_fd = NK_tcp_create_socket();
-	if(tcp_sock_fd < 0)
-		return EXIT_FAILURE;
-
-	if(NK_tcp_connect(tcp_sock_fd, FTP_SERVER_IP, 21) < 0)
+	if(NK_tcp_make_connection(&tcp_conn, FTP_SERVER_IP, FTP_SERVER_PORT, NULL) < 0)
 		return EXIT_FAILURE;
 	
-	printf("++++++++++ Connected to %s ++++++++++\n", FTP_SERVER_IP);
+	printf("++++++++++ Connected to %s:%d ++++++++++\n", FTP_SERVER_IP, FTP_SERVER_PORT);
 
-	// Test loop
-	while (!disconnect) {
-		recv(tcp_sock_fd, recv_buff, NK_MAX_TCP_PKT_SIZE, 0);
-		printf("%s", recv_buff);
-		disconnect = 1;
+	while(!exit) {
+		if( (cmd_len = shell_input(input_cmd, MAX_CMD_LEN)) < 0) {
+			exit = 1;
+			break;
+		}
+		if(send(tcp_conn.sock_fd, input_cmd, cmd_len, 0) <= 0)
+			exit = 1;
 	}
 
-	NK_tcp_disconnect(tcp_sock_fd);
+	// End connection.
+	NK_tcp_destroy_connection(&tcp_conn);
 
 	return 0;
 }

@@ -53,7 +53,7 @@ LFLAGS = $(SYSROOT) \
 	$(PLATFORM_LFLAGS)
 
 # Compiler flags
-CFLAGS = -std=c11 -Wall -fPIC \
+CFLAGS = -std=gnu99 -Wall -fPIC \
 	$(SYSROOT)
 
 # Custom macros
@@ -88,7 +88,7 @@ $(OUT): $(OBJECTS)
 	@echo "-----------------------------------------"
 	@echo "       Linking everything                  "
 	@echo "-------------------------------------------"
-	$(CC) $(LFLAGS) $(CFLAGS) $(LIBS) $^ -o $@
+	$(CC) $(LFLAGS) $(CFLAGS) $^ -o $@ $(LIBS)
 
 .PHONY: build
 build: $(OUT)

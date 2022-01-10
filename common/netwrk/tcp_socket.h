@@ -3,26 +3,44 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include "netwrk/netwrk.h"
+#include "netwrk/ip.h"
 
-#define NK_MAX_TCP_PKT_SIZE		1024
+#define NK_TCP_MAX_DATA_SIZE		2049
 
-/**
- * @brief Creates a TCP socket and returns the socket descriptor.
- * 
- * @return int Socket descriptor.
- */
-int NK_tcp_create_socket();
+typedef struct _NK_tcp_connection_t NK_tcp_connection_t;
 
 /**
- * @brief Sends a connect request and blocks. Returns a socket descriptor
- * of the newly established connection, if successful.
+ * @brief Callback called whenever a data is received from remote.
  * 
- * @param sock_fd Main TCP socket returned by NK_tcp_create_socket().
- * @param ip IP address of the target server.
- * @param port Port of the target server.
- * @return int New connection's socket descriptor. -1 on error.
  */
-int NK_tcp_connect(int sock_fd, const char* ip, int port);
+typedef int (*NK_tcp_recv_callback_t)(NK_tcp_connection_t *tcp_conn, void *user_context);
+
+/**
+ * @brief The context of a single TCP connection.
+ * 
+ */
+struct _NK_tcp_connection_t
+{
+    int sock_fd;
+    int16_t local_port, remote_port;
+    char local_ip[NK_MAX_IPV4_LEN], remote_ip[NK_MAX_IPV4_LEN];
+    
+    /*
+     * Received data is stored raw in this buffer, along with length.
+     */
+    int recv_data_len;
+    char recv_buff[NK_TCP_MAX_DATA_SIZE];
+
+    /* Receive loop thread handle. */
+    pthread_t recv_loop_thread;
+    
+    /* User callback to handle received data. */
+    NK_tcp_recv_callback_t recv_user_cb;
+
+    /* User/application specific context data. */
+    void *user_context;
+};
 
 /**
  * @brief Closes the connection to the server on the socket descriptor
@@ -31,5 +49,19 @@ int NK_tcp_connect(int sock_fd, const char* ip, int port);
  * @param conn_sock_fd Socket descriptor of the connection to be closed. 
  * @return int 0 on successful. -1 on error.
  */
-int NK_tcp_disconnect_server(int conn_sock_fd);
+int NK_tcp_destroy_connection(NK_tcp_connection_t *tcp_conn);
+
+/**
+ * @brief Connects to the TCP server at @remote_ip and @remote_port and
+ * populates the context in @tcp_conn.
+ * 
+ * @param tcp_conn 
+ * @param remote_ip 
+ * @param remote_port 
+ * @return int 
+ */
+int NK_tcp_make_connection(NK_tcp_connection_t *tcp_conn,
+                            const char* remote_ip, int16_t remote_port,
+                            NK_tcp_recv_callback_t user_cb);
+
 
