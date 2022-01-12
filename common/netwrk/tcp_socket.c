@@ -13,7 +13,7 @@ static int NK_tcp_create_socket()
 {
     int sock_fd = -1;
 
-    sock_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
+    sock_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if(sock_fd < 0)
         perror("socket");
     
