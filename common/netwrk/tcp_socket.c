@@ -129,7 +129,7 @@ static void* NK_tcp_recv_loop(void *arg)
         if(FD_ISSET(tcp_conn->sock_fd, &rfd_set)) {
             tcp_conn->recv_data_len = recv(tcp_conn->sock_fd,
                                         tcp_conn->recv_buff,
-                                        NK_TCP_MAX_DATA_SIZE, MSG_WAITALL);
+                                        NK_TCP_MAX_DATA_SIZE, 0);
             if(tcp_conn->recv_data_len == 0) {
                 printf("Connection closed by remote host.\n");
                 return NULL;
