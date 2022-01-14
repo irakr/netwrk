@@ -33,6 +33,6 @@ int shell_input(char *in, ssize_t max_len)
 		*in = '\0'; // For safety.
 		fgets(in, max_len, stdin);
 		strtrim(&in, strlen(in));
-	} while(!strlen(in));
+	} while(!(len = strlen(in)));
 	return len;
 }
