@@ -1,9 +1,7 @@
 #pragma once
 
-#include <stdint.h>
 #include <sys/types.h>
 #include <ctype.h>
-#include <string.h>
 
 /**
  * @brief Max and Min utility functions.

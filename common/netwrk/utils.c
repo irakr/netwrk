@@ -1,5 +1,7 @@
+#include "netwrk/netwrk.h"
 #include "netwrk/utils.h"
 #include <stdio.h>
+#include <string.h>
 
 char* strtrim(char **s, size_t len)
 {

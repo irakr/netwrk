@@ -1,9 +1,9 @@
 #pragma once
 
+#include "netwrk/netwrk.h"
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
-#include "netwrk/netwrk.h"
 #include "netwrk/ip.h"
 
 #define NK_TCP_MAX_DATA_SIZE		2049
@@ -32,13 +32,12 @@ struct _NK_tcp_connection_t
     int recv_data_len;
     char recv_buff[NK_TCP_MAX_DATA_SIZE];
 
-    /* Receive loop thread handle. */
+    /* 
+     * Receive loop thread handle.
+     * Calls @recv_user_cb when a data received.
+     */
     pthread_t recv_loop_thread;
-    
-    /* User callback to handle received data. */
     NK_tcp_recv_callback_t recv_user_cb;
-
-    /* User/application specific context data. */
     void *user_context;
 };
 
