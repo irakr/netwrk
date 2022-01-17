@@ -22,6 +22,12 @@
             _a <= _b ? _a : _b;      \
         })
 
+typedef struct
+{
+    char **s_list;
+    int rows, cols;
+} NK_string_list_t;
+
 /**
  * @brief Left and right trim a string @s.
  * 
@@ -31,6 +37,17 @@
  * a string with first character as '\0' is returned.
  */
 char* strtrim(char **s, size_t len);
+
+/**
+ * @brief Split string using @delim delimiter and store each token in @result.
+ * 
+ * @param s 
+ * @param len 
+ * @param delim Delimeter
+ * @param result
+ * @return int 
+ */
+int strsplit(char *s, size_t len, char delim, NK_string_list_t result);
 
 /**
  * @brief Read string input from stdin. Repeats reading if input is empty

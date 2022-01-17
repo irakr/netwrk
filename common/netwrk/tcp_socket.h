@@ -14,7 +14,8 @@ typedef struct _NK_tcp_connection_t NK_tcp_connection_t;
  * @brief Callback called whenever a data is received from remote.
  * 
  */
-typedef int (*NK_tcp_recv_callback_t)(NK_tcp_connection_t *tcp_conn, void *user_context);
+typedef int (*NK_tcp_recv_callback_t)(NK_tcp_connection_t *tcp_conn,
+                void *user_context);
 
 /**
  * @brief The context of a single TCP connection.
@@ -42,17 +43,8 @@ struct _NK_tcp_connection_t
 };
 
 /**
- * @brief Closes the connection to the server on the socket descriptor
- * conn_sock_fd.
- * 
- * @param conn_sock_fd Socket descriptor of the connection to be closed. 
- * @return int 0 on successful. -1 on error.
- */
-int NK_tcp_destroy_connection(NK_tcp_connection_t *tcp_conn);
-
-/**
  * @brief Connects to the TCP server at @remote_ip and @remote_port and
- * populates the context in @tcp_conn.
+ *   populates the context in @tcp_conn.
  * 
  * @param tcp_conn 
  * @param remote_ip 
@@ -63,4 +55,24 @@ int NK_tcp_make_connection(NK_tcp_connection_t *tcp_conn,
                             const char* remote_ip, int16_t remote_port,
                             NK_tcp_recv_callback_t user_cb);
 
+/**
+ * @brief Closes the connection to the server on the socket descriptor
+ *   conn_sock_fd.
+ * 
+ * @param conn_sock_fd Socket descriptor of the connection to be closed. 
+ * @return int 0 on successful. -1 on error.
+ */
+int NK_tcp_destroy_connection(NK_tcp_connection_t *tcp_conn);
+
+/**
+ * @brief Send and then receive data synchronously from the remote host for
+ *   the connection @tcp_conn. It is made sure that the entire @len bytes
+ *   of data in @data is sent.
+ * 
+ * @param tcp_conn Connection that determines the hosts.
+ * @param data Data bytes to be sent.
+ * @param len  Byte size of the data.
+ * @return int Number of bytes received from remote host.
+ */
+int NK_tcp_sendrecv(NK_tcp_connection_t *tcp_conn, const char *data, ssize_t len);
 

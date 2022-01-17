@@ -87,10 +87,38 @@ int NK_tcp_destroy_connection(NK_tcp_connection_t *tcp_conn)
     void *thread_ret = NULL;
 
     if( !tcp_conn || (tcp_conn->sock_fd < 0) )
-        return -1;
+        return ERR_INVALID_PARAM;
     close(tcp_conn->sock_fd);
     pthread_join(tcp_conn->recv_loop_thread, &thread_ret);
     return 0;
+}
+
+int NK_tcp_sendrecv(NK_tcp_connection_t *tcp_conn, const char *data, ssize_t len)
+{
+    const char *data_ptr = data;
+    ssize_t bytes_left = len, ret = 0;
+
+    if( !tcp_conn || (tcp_conn->sock_fd < 0)
+        || !data || (len < 0) )
+        return ERR_INVALID_PARAM;
+    
+    while(bytes_left > 0) {
+        ret = send(tcp_conn->sock_fd, data, len, 0);
+        if(ret < 0)
+            return ERR_WRITE_ERROR;
+        data_ptr += ret;
+        bytes_left -= ret;
+    }
+
+    memset(tcp_conn->recv_buff, 0, sizeof(tcp_conn->recv_buff));
+    ret = recv(tcp_conn->sock_fd, tcp_conn->recv_buff, NK_TCP_MAX_DATA_SIZE, 0);
+    if(ret < 0)
+        return ERR_READ_ERROR;
+    else if(ret == 0)
+        return ERR_REMOTE_DEAD;
+    
+    tcp_conn->recv_data_len = ret;
+    return ret;
 }
 
 /**

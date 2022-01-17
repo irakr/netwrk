@@ -46,7 +46,9 @@ typedef struct _NK_ftp_response_t {
 typedef struct _NK_ftp_connection_t {
     NK_tcp_connection_t *tcp_conn;
 
-    bool is_anonymous;
+#define LOGIN_MODE_ANONYMOUS    1
+#define LOGIN_MODE_USER         2
+    int login_mode;
     bool is_logged_in;
     NK_ftp_user_info_t current_user;
 
@@ -55,20 +57,19 @@ typedef struct _NK_ftp_connection_t {
 } NK_ftp_connection_t;
 
 /**
- * @brief Login to FTP server at @remote_ip:@remote_port using the credentials
- *   @user_name and @password. This function will login anonymously if @user_name
- *   is empty string or NULL.
+ * @brief Login to FTP server at @remote_ip:@remote_port using the
+ *   credentials @user_name and @password. This function will login
+ *   anonymously if @user_name is empty string or NULL.
  * 
  * @param ftp_conn 
  * @param remote_ip 
  * @param remote_port 
- * @param user_name 
+ * @param user_name If empty string or NULL then anonymous login will be
+ *   performed.
  * @param password 
- * @param mode 
  * @return int 
  */
 int NK_ftp_make_connection(NK_ftp_connection_t *ftp_conn,
-                            const char* remote_ip, int16_t remote_port,
-                            const char *user_name, const char *password,
-                            int mode);
+                            const char *remote_ip, int16_t remote_port,
+                            const char *user_name, const char *password);
 
