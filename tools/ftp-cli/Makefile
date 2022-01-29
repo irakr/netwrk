@@ -2,8 +2,8 @@ SHELL = /bin/bash
 
 PROJECT_ROOT := $(PWD)/../..
 
-# Source files located in common/netwrk
-LIB_SOURCES = $(shell find ${PROJECT_ROOT}/common/netwrk -name '*.c')
+# Source files located in lib/netwrk
+LIB_SOURCES = $(shell find ${PROJECT_ROOT}/lib/netwrk -name '*.c')
 
 # Source files in current directory.
 SOURCES = $(shell find . -name '*.c')
@@ -63,7 +63,7 @@ DEFINES =
 CONFIGS = 
 
 # Directories for required header files
-INCLUDES += -I$(PROJECT_ROOT)/common \
+INCLUDES += -I$(PROJECT_ROOT)/lib \
 	-I$(SYSROOT_PATH)/usr/include/glib-2.0 \
 	$(PLATFORM_INCLUDES)
 
