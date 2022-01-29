@@ -13,9 +13,11 @@ static char data_buff[NK_TCP_MAX_DATA_SIZE];
 static int NK_ftp_parse_response(NK_ftp_connection_t *ftp_conn)
 {
     char *recv_data;
-    int recv_len;
+    int recv_len, tokens, ret;
+    NK_string_list_t parsed_list;
 
-    if(!ftp_conn || !ftp_conn->tcp_conn)
+    if(!ftp_conn || !ftp_conn->tcp_conn
+        || !ftp_conn->current_response)
         return ERR_INVALID_PARAM;
     
     recv_data = ftp_conn->tcp_conn->recv_buff;
@@ -24,8 +26,14 @@ static int NK_ftp_parse_response(NK_ftp_connection_t *ftp_conn)
     if(!recv_data || !strlen(recv_data) || (recv_len <= 0) )
         return ERR_INVALID_PARAM;
 
-    
+    if(strsplit(recv_data, recv_len, " ", &parsed_list) <= 0)
+        return ERR_PARSE_ERROR;
 
+    ret = sscanf(recv_data, "%d %[^\n]s", &ftp_conn->current_response->code,
+                        ftp_conn->current_response->data);
+    if(ret <= 0)
+        return ERR_PARSE_ERROR;
+    
     return 0;
 }
 

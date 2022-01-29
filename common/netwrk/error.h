@@ -31,4 +31,6 @@
 #define ERR_READ_ERROR          -9
 #define ERR_REMOTE_DEAD         -10
 #define ERR_INVALID_CONNECTION  -11
+#define ERR_MEMORY_ERROR        -12
+#define ERR_PARSE_ERROR         -13
 

@@ -22,11 +22,29 @@
             _a <= _b ? _a : _b;      \
         })
 
+/**
+ * @brief String list
+ * 
+ */
 typedef struct
 {
-    char **s_list;
-    int rows, cols;
+    char **data;
+    int rows;
 } NK_string_list_t;
+
+int16_t strtoint16(const char *s, int base);
+int strtoint(const char *s, int base);
+
+/**
+ * @brief Returns the number of occurences of the sub-string @sub_str
+ *   in @s.
+ * 
+ * @param s 
+ * @param sub_str
+ * @param len 
+ * @return int Returns the count.
+ */
+int strstrn(const char *s, size_t len, const char *sub_str);
 
 /**
  * @brief Left and right trim a string @s.
@@ -43,11 +61,11 @@ char* strtrim(char **s, size_t len);
  * 
  * @param s 
  * @param len 
- * @param delim Delimeter
+ * @param delim Set of delimeters as a string. Passed to strtok().
  * @param result
- * @return int 
+ * @return int Returns the number of items added to the list @result.
  */
-int strsplit(char *s, size_t len, char delim, NK_string_list_t result);
+int strsplit(char *s, size_t len, const char *delim, NK_string_list_t *result);
 
 /**
  * @brief Read string input from stdin. Repeats reading if input is empty
