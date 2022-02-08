@@ -23,7 +23,7 @@ static int NK_ftp_parse_response(NK_ftp_connection_t *ftp_conn)
     recv_data = ftp_conn->tcp_conn->recv_buff;
     recv_len  = ftp_conn->tcp_conn->recv_data_len;
 
-    if(!recv_data || !strlen(recv_data) || (recv_len <= 0) )
+    if(IS_STR_NONE(recv_data) || (recv_len <= 0) )
         return ERR_INVALID_PARAM;
 
     if(strsplit(recv_data, recv_len, " ", &parsed_list) <= 0)
@@ -44,18 +44,17 @@ int NK_ftp_make_connection(NK_ftp_connection_t *ftp_conn,
     int ret = 0;
 
     if( (!ftp_conn)
-        || (!remote_ip) || !strlen(remote_ip)
-        || (remote_port < 0)
-        || (!password) || !strlen(password) )
+        || IS_STR_NONE(remote_ip)
+        || (remote_port < 0) )
     {
         return ERR_INVALID_PARAM;
     }
 
     memset(ftp_conn, 0, sizeof(NK_ftp_connection_t));
 
-    ftp_conn->login_mode = (!remote_ip || !strlen(remote_ip))
+    ftp_conn->login_mode = (IS_STR_NONE(user_name))
                             ? LOGIN_MODE_ANONYMOUS : LOGIN_MODE_USER;
-    if(ftp_conn->login_mode == LOGIN_MODE_ANONYMOUS) { // TODO
+    if(ftp_conn->login_mode == LOGIN_MODE_ANONYMOUS) {
         return ERR_NOT_IMPLEMENTED;
     }
 
@@ -71,7 +70,7 @@ int NK_ftp_make_connection(NK_ftp_connection_t *ftp_conn,
     
     /* Login */
 
-    sprintf(data_buff, "USER %s\n", user_name);
+    sprintf(data_buff, "USER %s\r\n", user_name);
     if((ret = NK_tcp_sendrecv(ftp_conn->tcp_conn, data_buff, strlen(data_buff)))
                     < 0)
     {
@@ -79,7 +78,7 @@ int NK_ftp_make_connection(NK_ftp_connection_t *ftp_conn,
         return ret;
     }
 
-    sprintf(data_buff, "PASS %s\n", password);
+    sprintf(data_buff, "PASS %s\r\n", password);
     if((ret = NK_tcp_sendrecv(ftp_conn->tcp_conn, data_buff, strlen(data_buff)))
                     < 0)
     {

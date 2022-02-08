@@ -23,6 +23,13 @@
         })
 
 /**
+ * @brief Check if string is NULL pointer or if not
+ *   then is it an empty string.
+ * 
+ */
+#define IS_STR_NONE(str)    (!str || !strlen(str))
+
+/**
  * @brief String list
  * 
  */
