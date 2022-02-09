@@ -36,9 +36,13 @@ int NK_tcp_make_connection(NK_tcp_connection_t *tcp_conn,
         return ERR_INVALID_PARAM;
     }
     
-    // Clean copy of *tcp_conn.
+    /* Making a clean copy of *tcp_conn. */
     memset(tcp_conn, 0, sizeof(NK_tcp_connection_t));
-    
+
+    /* Allocate buffers */
+    tcp_conn->recv_buff = (char*)malloc(sizeof(char) * NK_TCP_MAX_CHUNK_SIZE);
+    NK_tcp_reset_recv_buff(tcp_conn);
+
     /*
      * Setup TCP socket and connection.
      */
@@ -99,12 +103,14 @@ int NK_tcp_destroy_connection(NK_tcp_connection_t *tcp_conn)
     return 0;
 }
 
-/*
- * Low-level API.
- * Copies received data from kernel to app's internal buffer
- * tcp_conn->recv_data_buff. Tries to fill the whole buffer.
- */
-static int NK_tcp_recv_all(NK_tcp_connection_t *tcp_conn)
+void NK_tcp_reset_recv_buff(NK_tcp_connection_t *tcp_conn)
+{
+    assert(tcp_conn);
+    tcp_conn->recv_buff_tail = tcp_conn->recv_buff_head = tcp_conn->recv_buff;
+    tcp_conn->recv_data_len = 0;
+}
+
+int NK_tcp_recv_all(NK_tcp_connection_t *tcp_conn)
 {
     int ret;
     size_t recv_len, recv_buff_size;
@@ -113,7 +119,7 @@ static int NK_tcp_recv_all(NK_tcp_connection_t *tcp_conn)
     if( !tcp_conn || (tcp_conn->sock_fd < 0) )
         return ERR_INVALID_PARAM;
     
-    recv_buff_size = sizeof(tcp_conn->recv_buff);
+    recv_buff_size = NK_TCP_MAX_CHUNK_SIZE;
     
     /*
      * Buffer is actually not full. We are just not allowing
@@ -124,7 +130,7 @@ static int NK_tcp_recv_all(NK_tcp_connection_t *tcp_conn)
     if( tcp_conn->recv_buff_tail == (tcp_conn->recv_buff + recv_buff_size - 1) ) {
         if(tcp_conn->recv_buff_tail > tcp_conn->recv_buff_head)
             return ERR_BUFFER_FULL;
-        tcp_conn->recv_buff_tail = tcp_conn->recv_buff_head = tcp_conn->recv_data_len = 0;
+        NK_tcp_reset_recv_buff(tcp_conn);
     }
 
     if(!NK_tcp_wait(tcp_conn, 90, 0))

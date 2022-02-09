@@ -36,7 +36,7 @@ struct _NK_tcp_connection_t
      * TODO: Make this a ring buffer.
      */
     int recv_data_len;
-    char recv_buff[NK_TCP_MAX_CHUNK_SIZE];
+    char *recv_buff;
     char *recv_buff_head;
     char *recv_buff_tail;
 
@@ -73,7 +73,14 @@ int NK_tcp_make_connection(NK_tcp_connection_t *tcp_conn,
  */
 int NK_tcp_destroy_connection(NK_tcp_connection_t *tcp_conn);
 
-// Receive and store in the buffer @data.
+void NK_tcp_reset_recv_buff(NK_tcp_connection_t *tcp_conn);
+
+/*
+ * Copies all received data from kernel to app's internal buffer
+ * tcp_conn->recv_data_buff. Tries to fill the whole buffer.
+ */
+int NK_tcp_recv_all(NK_tcp_connection_t *tcp_conn);
+
 /**
  * @brief Extract received data stream until the token @until_token.
  * 

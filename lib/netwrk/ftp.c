@@ -68,8 +68,11 @@ int NK_ftp_make_connection(NK_ftp_connection_t *ftp_conn,
             ftp_conn->tcp_conn, remote_ip, remote_port, NULL);
     if(ret != 0)
         return ret;
+    
     /* Discard the banner message first */
-
+    NK_tcp_recv_all(ftp_conn->tcp_conn);
+    printf("%s", ftp_conn->tcp_conn->recv_buff);
+    NK_tcp_reset_recv_buff(ftp_conn->tcp_conn);
     
     /* Login */
 
