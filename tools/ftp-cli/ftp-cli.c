@@ -11,29 +11,29 @@
 
 int main()
 {
-	NK_tcp_connection_t tcp_conn;
+	NK_ftp_connection_t ftp_conn;
 	// NK_ftp_user_info_t user_info;
 	char input_cmd[MAX_CMD_LEN];
 	int cmd_len = 0, exit = 0;
 
 	printf("################ Simple FTP client - by irakr ################\n");
 	
-	if(NK_tcp_make_connection(&tcp_conn, FTP_SERVER_IP, FTP_SERVER_PORT, NULL) < 0)
+	if(NK_ftp_make_connection(&ftp_conn, FTP_SERVER_IP, FTP_SERVER_PORT, NULL, NULL) < 0)
 		return EXIT_FAILURE;
 	
-	printf("++++++++++ Connected to %s:%d ++++++++++\n", FTP_SERVER_IP, FTP_SERVER_PORT);
+	printf("++++++++++ Connected to FTP server: %s:%d ++++++++++\n", FTP_SERVER_IP, FTP_SERVER_PORT);
 
 	while(!exit) {
 		if( (cmd_len = shell_input(input_cmd, MAX_CMD_LEN)) < 0) {
 			exit = 1;
 			break;
 		}
-		if(send(tcp_conn.sock_fd, input_cmd, cmd_len, 0) <= 0)
+		if(send(ftp_conn.tcp_conn->sock_fd, input_cmd, cmd_len, 0) <= 0)
 			exit = 1;
 	}
 
 	// End connection.
-	NK_tcp_destroy_connection(&tcp_conn);
+	NK_tcp_destroy_connection(ftp_conn.tcp_conn);
 
 	return 0;
 }

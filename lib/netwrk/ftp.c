@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-static char data_buff[NK_TCP_MAX_DATA_SIZE];
+static char data_buff[NK_TCP_MAX_CHUNK_SIZE];
 
 /**
  * @brief Parse the response string into ftp_conn->current_reponse.
@@ -55,7 +55,8 @@ int NK_ftp_make_connection(NK_ftp_connection_t *ftp_conn,
     ftp_conn->login_mode = (IS_STR_NONE(user_name))
                             ? LOGIN_MODE_ANONYMOUS : LOGIN_MODE_USER;
     if(ftp_conn->login_mode == LOGIN_MODE_ANONYMOUS) {
-        return ERR_NOT_IMPLEMENTED;
+        user_name = "anonymous";
+        password = "anonymous@example.com";
     }
 
     /* Make a TCP connection */
@@ -67,6 +68,8 @@ int NK_ftp_make_connection(NK_ftp_connection_t *ftp_conn,
             ftp_conn->tcp_conn, remote_ip, remote_port, NULL);
     if(ret != 0)
         return ret;
+    /* Discard the banner message first */
+
     
     /* Login */
 

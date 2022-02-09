@@ -28,11 +28,17 @@ struct _NK_tcp_connection_t
     char local_ip[NK_MAX_IPV4_LEN], remote_ip[NK_MAX_IPV4_LEN];
     
     /*
-     * Received data is stored raw in this buffer, along with length.
-     * This is an internal ring buffer. TODO.
+     * Received data is stored raw in this buffer.
+     * Currently this buffer is maintained as a simple queue.
+     * @recv_buff_head: Data extraction point.
+     * @recv_buff_tail: Data insertion point.
+     * 
+     * TODO: Make this a ring buffer.
      */
     int recv_data_len;
     char recv_buff[NK_TCP_MAX_CHUNK_SIZE];
+    char *recv_buff_head;
+    char *recv_buff_tail;
 
     /* 
      * Receive loop thread handle.
@@ -66,6 +72,19 @@ int NK_tcp_make_connection(NK_tcp_connection_t *tcp_conn,
  * @return int 0 on successful. -1 on error.
  */
 int NK_tcp_destroy_connection(NK_tcp_connection_t *tcp_conn);
+
+// Receive and store in the buffer @data.
+/**
+ * @brief Extract received data stream until the token @until_token.
+ * 
+ * @param tcp_conn 
+ * @param data 
+ * @param len 
+ * @param until_token 
+ * @return int 
+ */
+int NK_tcp_recv_until(NK_tcp_connection_t *tcp_conn, char *data, ssize_t len,
+                      const char *until_token);
 
 /**
  * @brief Send and then receive data synchronously from the remote host for
