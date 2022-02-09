@@ -1,4 +1,5 @@
 - Use gethostbyname() instead of IP.
+- Implement ring buffer for the internal recv buffer.
 - Create heirarchical Makefiles.
 - Set SYSROOT_DIR according to TOOLCHAIN_PREFIX.
 - Write makefiles to build common/netwrk/*.c as libnetwrk.so or libnetwrk.a.

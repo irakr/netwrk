@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include "netwrk/ip.h"
 
-#define NK_TCP_MAX_DATA_SIZE		2049
+#define NK_TCP_MAX_CHUNK_SIZE		(1 << 13)
 
 typedef struct _NK_tcp_connection_t NK_tcp_connection_t;
 
@@ -29,9 +29,10 @@ struct _NK_tcp_connection_t
     
     /*
      * Received data is stored raw in this buffer, along with length.
+     * This is an internal ring buffer. TODO.
      */
     int recv_data_len;
-    char recv_buff[NK_TCP_MAX_DATA_SIZE];
+    char recv_buff[NK_TCP_MAX_CHUNK_SIZE];
 
     /* 
      * Receive loop thread handle.
@@ -44,7 +45,9 @@ struct _NK_tcp_connection_t
 
 /**
  * @brief Connects to the TCP server at @remote_ip and @remote_port and
- *   populates the context in @tcp_conn.
+ *   populates the context in @tcp_conn. If @user_cb is provided then
+ *   a receive thread will be created and user_cb callback will called
+ *   for each TCP message received.
  * 
  * @param tcp_conn 
  * @param remote_ip 
@@ -68,6 +71,8 @@ int NK_tcp_destroy_connection(NK_tcp_connection_t *tcp_conn);
  * @brief Send and then receive data synchronously from the remote host for
  *   the connection @tcp_conn. It is made sure that the entire @len bytes
  *   of data in @data is sent.
+ * @note Do not use this function if the parameter user_cb was NULL to the
+ *   function NK_tcp_make_connection().
  * 
  * @param tcp_conn Connection that determines the hosts.
  * @param data Data bytes to be sent.
@@ -76,3 +81,10 @@ int NK_tcp_destroy_connection(NK_tcp_connection_t *tcp_conn);
  */
 int NK_tcp_sendrecv(NK_tcp_connection_t *tcp_conn, const char *data, ssize_t len);
 
+/**
+ * @brief Wait for something on the socket for @sec seconds and
+ *   @nsec nanoseconds. Uses select().
+ * 
+ * @return Return 1(something's up) or 0(nothing, timed out)
+ */
+int NK_tcp_wait(NK_tcp_connection_t *tcp_conn, long sec, long nsec);
