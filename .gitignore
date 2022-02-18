@@ -1,5 +1,8 @@
 .vscode
 
+cscope.files
+cscope.out
+
 # Prerequisites
 **/*.d
 
