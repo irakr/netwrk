@@ -3,8 +3,9 @@
 #include "netwrk/netwrk.h"
 #include "netwrk/tcp_socket.h"
 
-#define MAX_LEN_USERNAME	128
-#define MAX_LEN_PASSWORD	256
+#define MAX_LEN_USERNAME	        128
+#define MAX_LEN_PASSWORD	        256
+#define MAX_LEN_RESPONSE_MESSAGE    1024
 
 /*
  * FTP user credentials
@@ -23,6 +24,24 @@ typedef enum {
     , PASV          // 6
 } NK_ftp_command_t;
 
+typedef enum {
+FTP_RESP_CMD_OK                             = 200,
+FTP_RESP_CMD_SYNTAX_ERROR                   = 500,
+FTP_RESP_ARG_SYNTAX_ERROR                   = 501,
+FTP_RESP_CMD_NOT_IMPL                       = 502,
+FTP_RESP_CMD_NOT_IMPL_SUP                   = 202, /* Superflous at this site */
+FTP_RESP_CMD_BAD_SEQ                        = 503,
+FTP_RESP_CMD_NOT_IMPL_PAR                   = 504,
+
+FTP_RESP_USERNAME_OK                        = 331,
+FTP_RESP_ACCESS_GRANTED                     = 230,
+FTP_RESP_FILE_ACTION_OK                     = 250,
+FTP_RESP_PATHNAME_CREAT_OK                  = 257,
+FTP_RESP_ENTER_PASV                         = 227,
+FTP_RESP_FILE_TRANSFER_COMPLETE             = 226,
+FTP_RESP_FILE_OK_OPEN_DATACON               = 150
+} NK_ftp_response_code_t;
+
 /*
  * FTP request data
  */
@@ -36,7 +55,7 @@ typedef struct _NK_ftp_request_t {
  */
 typedef struct _NK_ftp_response_t {
     int16_t code;
-    const char *message;
+    const char message[MAX_LEN_RESPONSE_MESSAGE];
     void *data;
 } NK_ftp_response_t;
 
@@ -52,8 +71,8 @@ typedef struct _NK_ftp_connection_t {
     bool is_logged_in;
     NK_ftp_user_info_t current_user;
 
-    NK_ftp_request_t *current_request;
-    NK_ftp_response_t *current_response;
+    NK_ftp_request_t current_request;  /* Not used currently */
+    NK_ftp_response_t current_response;
 } NK_ftp_connection_t;
 
 /**

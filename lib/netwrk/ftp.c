@@ -17,20 +17,20 @@ static int NK_ftp_parse_response(NK_ftp_connection_t *ftp_conn)
     NK_string_list_t parsed_list;
 
     if(!ftp_conn || !ftp_conn->tcp_conn
-        || !ftp_conn->current_response)
+        || IS_STR_NONE(ftp_conn->tcp_conn->recv_buff)
+        || (ftp_conn->tcp_conn->recv_data_len <= 0) )
+    {
         return ERR_INVALID_PARAM;
+    }
     
     recv_data = ftp_conn->tcp_conn->recv_buff;
     recv_len  = ftp_conn->tcp_conn->recv_data_len;
 
-    if(IS_STR_NONE(recv_data) || (recv_len <= 0) )
-        return ERR_INVALID_PARAM;
+    // if(strsplit(recv_data, recv_len, " ", &parsed_list) <= 0)
+    //     return ERR_PARSE_ERROR;
 
-    if(strsplit(recv_data, recv_len, " ", &parsed_list) <= 0)
-        return ERR_PARSE_ERROR;
-
-    ret = sscanf(recv_data, "%d %[^\n]s", &ftp_conn->current_response->code,
-                        ftp_conn->current_response->data);
+    ret = sscanf(recv_data, "%d %[^\n]s", &ftp_conn->current_response.code,
+                        ftp_conn->current_response.message);
     if(ret <= 0)
         return ERR_PARSE_ERROR;
     
@@ -42,6 +42,7 @@ int NK_ftp_make_connection(NK_ftp_connection_t *ftp_conn,
                             const char *user_name, const char *password)
 {
     int ret = 0;
+    NK_ftp_response_t *response;
 
     if( (!ftp_conn)
         || IS_STR_NONE(remote_ip)
@@ -73,24 +74,36 @@ int NK_ftp_make_connection(NK_ftp_connection_t *ftp_conn,
     NK_tcp_recv_all(ftp_conn->tcp_conn);
     printf("%s", ftp_conn->tcp_conn->recv_buff);
     NK_tcp_reset_recv_buff(ftp_conn->tcp_conn);
-    
+
+    response = &ftp_conn->current_response;
+
     /* Login */
 
     sprintf(ftp_data_buff, "USER %s\r\n", user_name);
     if((ret = NK_tcp_sendrecv(ftp_conn->tcp_conn, ftp_data_buff, strlen(ftp_data_buff)))
                     < 0)
     {
-        NK_tcp_destroy_connection(ftp_conn->tcp_conn);
+        if(ret == ERR_REMOTE_DEAD)
+            NK_tcp_destroy_connection(ftp_conn->tcp_conn);
         return ret;
     }
-
+    if((ret = NK_ftp_parse_response(ftp_conn)) < 0)
+        return ret;
+    if(response->code != FTP_RESP_USERNAME_OK)
+        return ERR_AUTH_ERROR;
+    
     sprintf(ftp_data_buff, "PASS %s\r\n", password);
     if((ret = NK_tcp_sendrecv(ftp_conn->tcp_conn, ftp_data_buff, strlen(ftp_data_buff)))
                     < 0)
     {
-        NK_tcp_destroy_connection(ftp_conn->tcp_conn);
+        if(ret == ERR_REMOTE_DEAD)
+            NK_tcp_destroy_connection(ftp_conn->tcp_conn);
         return ret;
     }
+    if((ret = NK_ftp_parse_response(ftp_conn)) < 0)
+        return ret;
+    if(response->code != FTP_RESP_ACCESS_GRANTED)
+        return ERR_AUTH_ERROR;
 
     return 0;
 }
