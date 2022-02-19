@@ -38,3 +38,4 @@
 #define ERR_BUFFER_FULL         -16
 #define ERR_BUFFER_CLEARED      -17
 #define ERR_AUTH_ERROR          -18
+#define ERR_COMMAND_FAILED      -19

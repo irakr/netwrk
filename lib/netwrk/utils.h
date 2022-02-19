@@ -51,7 +51,7 @@ int strtoint(const char *s, int base);
  * @param len 
  * @return int Returns the count.
  */
-int strstrn(const char *s, size_t len, const char *sub_str);
+int stroccurence(const char *s, size_t len, const char *sub_str);
 
 /**
  * @brief Left and right trim a string @s.
@@ -59,7 +59,8 @@ int strstrn(const char *s, size_t len, const char *sub_str);
  * @param s 	Pointer to the pointer that points to the actual string to be trimmed.
  * @param len 	Length of the string buffer provided by caller.
  * @return char* Pointer to the trimmed string. If @s contains only whitespaces then
- * a string with first character as '\0' is returned.
+ *   a string with first character as '\0' is returned. Otherwise NULL is returned for
+ *   all other errors.
  */
 char* strtrim(char **s, size_t len);
 

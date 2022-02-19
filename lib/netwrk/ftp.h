@@ -73,6 +73,9 @@ typedef struct _NK_ftp_connection_t {
 
     NK_ftp_request_t current_request;  /* Not used currently */
     NK_ftp_response_t current_response;
+
+    int server_data_port;   /* Data port received from server PASV response */
+
 } NK_ftp_connection_t;
 
 /**
@@ -111,4 +114,13 @@ int NK_ftp_change_dir(NK_ftp_connection_t *ftp_conn, const char *dir);
  */
 int NK_ftp_get_file(NK_ftp_connection_t *ftp_conn, const char *filename,
                     const char *dir);
+
+/**
+ * @brief Parse the server port from the PASV response and store in
+ *   ftp_conn->server_data_port. 
+ * 
+ * @param ftp_conn 
+ * @return int 
+ */
+int NK_ftp_parse_pasv(NK_ftp_connection_t *ftp_conn);
 

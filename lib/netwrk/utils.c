@@ -18,7 +18,7 @@ int strtoint(const char *s, int base)
 	return (int)ret;
 }
 
-int strstrn(const char *s, size_t len, const char *sub_str)
+int stroccurence(const char *s, size_t len, const char *sub_str)
 {
 	char *s_ptr;
 	int count = 0;
@@ -26,10 +26,8 @@ int strstrn(const char *s, size_t len, const char *sub_str)
 	if(!s || !sub_str)
 		return ERR_INVALID_PARAM;
 	
-	for(s_ptr = s; *s_ptr != '\0'; s_ptr++) {
-		if( (s_ptr = strstr(s_ptr, sub_str)) )
-			count++;
-	}
+	for(s_ptr = s; (s_ptr = strstr(s_ptr, sub_str)); ++s_ptr, ++count);
+	
 	return count;
 }
 
@@ -59,13 +57,13 @@ int strsplit(char *s, size_t len, const char *delim, NK_string_list_t *result)
 	int i, token_count;
 	char *token;
 
-	if(!s || !result)
+	if(IS_STR_NONE(s) || !result || IS_STR_NONE(delim))
 		return ERR_INVALID_PARAM;
 	
 	result->rows = 0; // Reset
 
 	// Allocate memory for rows.
-	token_count = strstrn(s, len, delim);
+	token_count = stroccurence(s, len, delim);
 	if(token_count <= 0)
 		return 0;
 	result->data = (char**)calloc(token_count, sizeof(char*));

@@ -37,6 +37,66 @@ static int NK_ftp_parse_response(NK_ftp_connection_t *ftp_conn)
     return 0;
 }
 
+int NK_ftp_parse_pasv(NK_ftp_connection_t *ftp_conn)
+{
+    int ret;
+    NK_string_list_t addr_parts;
+    int16_t port_high, port_low;
+    char response_msg[MAX_LEN_RESPONSE_MESSAGE], *open_parenthesis,
+         *close_parenthesis, *pasv_addr_str, ip_addr_str[NK_MAX_IPV4_LEN];
+
+    if(!ftp_conn || !ftp_conn->tcp_conn
+        || (ftp_conn->current_response.code != FTP_RESP_ENTER_PASV)
+        || IS_STR_NONE(ftp_conn->current_response.message) )
+    {
+        return ERR_INVALID_PARAM;
+    }
+
+    strncpy(response_msg, ftp_conn->current_response.message,
+        NK_MIN(
+            strlen(ftp_conn->current_response.message), sizeof(response_msg) - 1
+        )
+    );
+
+    // response_msg = strtrim(&response_msg, strlen(response_msg));
+
+    open_parenthesis = strstr(response_msg, "(");
+    close_parenthesis = strstr(response_msg, ")");
+    if(!open_parenthesis || !close_parenthesis)
+        return ERR_PARSE_ERROR;
+    open_parenthesis++;
+    *close_parenthesis = '\0';
+    // Now open_parenthesis points to sub-string xx,xx,xx,xx,xx,xx
+
+    if((ret = strsplit(open_parenthesis, strlen(open_parenthesis),
+              ",", &addr_parts)) <= 0)
+    {
+        return ERR_PARSE_ERROR;
+    }
+    if(ret != 6)
+        return ERR_PARSE_ERROR;
+
+    /* IP address part is not really necessary,
+     * atleast for now. */
+#if 0    
+    /* Extract IP component */
+    strcpy(ip_addr_str, addr_parts.data[0]);
+    strcat(ip_addr_str, ".");
+    strcat(ip_addr_str, addr_parts.data[1]);
+    strcat(ip_addr_str, ".");
+    strcat(ip_addr_str, addr_parts.data[2]);
+    strcat(ip_addr_str, ".");
+    strcat(ip_addr_str, addr_parts.data[3]);
+#endif
+
+    /* Extract port component */
+    port_high = strtoint16(addr_parts.data[4], 10); // high 8-bits
+    port_low = strtoint16(addr_parts.data[5], 10); // low 8-bits
+    ftp_conn->server_data_port = 256 * port_high + port_low;
+
+    return 0;
+}
+
 int NK_ftp_make_connection(NK_ftp_connection_t *ftp_conn,
                             const char *remote_ip, int16_t remote_port,
                             const char *user_name, const char *password)
@@ -105,18 +165,23 @@ int NK_ftp_make_connection(NK_ftp_connection_t *ftp_conn,
     if(response->code != FTP_RESP_ACCESS_GRANTED)
         return ERR_AUTH_ERROR;
 
+    /* Login successful */
+
     return 0;
 }
 
 int NK_ftp_change_dir(NK_ftp_connection_t *ftp_conn, const char *dir)
 {
     int ret;
-    
+    NK_ftp_response_t *response;
+
     if( (!ftp_conn)
         || IS_STR_NONE(dir) )
     {
         return ERR_INVALID_PARAM;
     }
+
+    response = &ftp_conn->current_response;
 
     sprintf(ftp_data_buff, "CWD %s\r\n", dir);
     if((ret = NK_tcp_sendrecv(ftp_conn->tcp_conn, ftp_data_buff, strlen(ftp_data_buff)))
@@ -124,6 +189,10 @@ int NK_ftp_change_dir(NK_ftp_connection_t *ftp_conn, const char *dir)
     {
         return ret;
     }
+    if((ret = NK_ftp_parse_response(ftp_conn)) < 0)
+        return ret;
+    if(response->code != FTP_RESP_FILE_ACTION_OK)
+        return ERR_COMMAND_FAILED;
     
     sprintf(ftp_data_buff, "PWD\r\n");
     if((ret = NK_tcp_sendrecv(ftp_conn->tcp_conn, ftp_data_buff, strlen(ftp_data_buff)))
@@ -131,6 +200,10 @@ int NK_ftp_change_dir(NK_ftp_connection_t *ftp_conn, const char *dir)
     {
         return ret;
     }
+    if((ret = NK_ftp_parse_response(ftp_conn)) < 0)
+        return ret;
+    if(response->code != FTP_RESP_PATHNAME_CREAT_OK)
+        return ERR_COMMAND_FAILED;
 
     return 0;
 }
@@ -139,6 +212,7 @@ int NK_ftp_get_file(NK_ftp_connection_t *ftp_conn, const char *filename,
                     const char *dir)
 {
     int ret;
+    NK_ftp_response_t *response;
 
     if( (!ftp_conn)
         || IS_STR_NONE(filename)
@@ -146,6 +220,8 @@ int NK_ftp_get_file(NK_ftp_connection_t *ftp_conn, const char *filename,
     {
         return ERR_INVALID_PARAM;
     }
+
+    response = &ftp_conn->current_response;
 
     if((ret = NK_ftp_change_dir(ftp_conn, dir)) < 0)
         return ret;
@@ -156,6 +232,10 @@ int NK_ftp_get_file(NK_ftp_connection_t *ftp_conn, const char *filename,
     {
         return ret;
     }
+    if((ret = NK_ftp_parse_response(ftp_conn)) < 0)
+        return ret;
+    if(response->code != FTP_RESP_CMD_OK)
+        return ERR_COMMAND_FAILED;
 
     sprintf(ftp_data_buff, "PASV\r\n");
     if((ret = NK_tcp_sendrecv(ftp_conn->tcp_conn, ftp_data_buff, strlen(ftp_data_buff)))
@@ -163,14 +243,26 @@ int NK_ftp_get_file(NK_ftp_connection_t *ftp_conn, const char *filename,
     {
         return ret;
     }
-    // TODO: Read data port from server and connect to it.
-    // Then RETR.
+    if((ret = NK_ftp_parse_response(ftp_conn)) < 0)
+        return ret;
+    if(response->code != FTP_RESP_ENTER_PASV)
+        return ERR_COMMAND_FAILED;
+    
+    // Save PASV data port received from server.
+    if((ret = NK_ftp_parse_pasv(ftp_conn)) < 0)
+        return ret;
+
+    // Send RETR command to initiate file download.
     sprintf(ftp_data_buff, "RETR %s\r\n", filename);
     if((ret = NK_tcp_sendrecv(ftp_conn->tcp_conn, ftp_data_buff, strlen(ftp_data_buff)))
                     < 0)
     {
         return ret;
     }
+    if((ret = NK_ftp_parse_response(ftp_conn)) < 0)
+        return ret;
+    if(response->code != FTP_RESP_FILE_OK_OPEN_DATACON)
+        return ERR_COMMAND_FAILED;
 
     return 0;
 }
