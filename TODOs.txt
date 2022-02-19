@@ -1,3 +1,5 @@
+- Implement FTP URL parser.
+- Add lock/unlock for ftp_data_buff.
 - Integrate command line parsing to read options. getopt().
 - Use gethostbyname() instead of IP.
 - Implement ring buffer for the internal recv buffer.

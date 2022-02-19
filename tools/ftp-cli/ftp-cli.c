@@ -3,9 +3,11 @@
 #include "netwrk/tcp_socket.h"
 #include "netwrk/ftp.h"
 
-// Test server
-#define FTP_SERVER_IP	"134.119.8.75"
-#define FTP_SERVER_PORT	21
+// Test server data
+// TODO: These are to be provided by user with cmd args.
+#define FTP_SERVER_IP		"134.119.8.75"
+#define FTP_SERVER_PORT					21
+#define FTP_TARGET_FILE		""
 
 #define MAX_CMD_LEN		2049
 

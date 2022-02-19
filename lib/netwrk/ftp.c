@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-static char data_buff[NK_TCP_MAX_CHUNK_SIZE];
+static char ftp_data_buff[NK_TCP_MAX_CHUNK_SIZE];
 
 /**
  * @brief Parse the response string into ftp_conn->current_reponse.
@@ -76,19 +76,86 @@ int NK_ftp_make_connection(NK_ftp_connection_t *ftp_conn,
     
     /* Login */
 
-    sprintf(data_buff, "USER %s\r\n", user_name);
-    if((ret = NK_tcp_sendrecv(ftp_conn->tcp_conn, data_buff, strlen(data_buff)))
+    sprintf(ftp_data_buff, "USER %s\r\n", user_name);
+    if((ret = NK_tcp_sendrecv(ftp_conn->tcp_conn, ftp_data_buff, strlen(ftp_data_buff)))
                     < 0)
     {
         NK_tcp_destroy_connection(ftp_conn->tcp_conn);
         return ret;
     }
 
-    sprintf(data_buff, "PASS %s\r\n", password);
-    if((ret = NK_tcp_sendrecv(ftp_conn->tcp_conn, data_buff, strlen(data_buff)))
+    sprintf(ftp_data_buff, "PASS %s\r\n", password);
+    if((ret = NK_tcp_sendrecv(ftp_conn->tcp_conn, ftp_data_buff, strlen(ftp_data_buff)))
                     < 0)
     {
         NK_tcp_destroy_connection(ftp_conn->tcp_conn);
+        return ret;
+    }
+
+    return 0;
+}
+
+int NK_ftp_change_dir(NK_ftp_connection_t *ftp_conn, const char *dir)
+{
+    int ret;
+    
+    if( (!ftp_conn)
+        || IS_STR_NONE(dir) )
+    {
+        return ERR_INVALID_PARAM;
+    }
+
+    sprintf(ftp_data_buff, "CWD %s\r\n", dir);
+    if((ret = NK_tcp_sendrecv(ftp_conn->tcp_conn, ftp_data_buff, strlen(ftp_data_buff)))
+                    < 0)
+    {
+        return ret;
+    }
+    
+    sprintf(ftp_data_buff, "PWD\r\n");
+    if((ret = NK_tcp_sendrecv(ftp_conn->tcp_conn, ftp_data_buff, strlen(ftp_data_buff)))
+                    < 0)
+    {
+        return ret;
+    }
+
+    return 0;
+}
+
+int NK_ftp_get_file(NK_ftp_connection_t *ftp_conn, const char *filename,
+                    const char *dir)
+{
+    int ret;
+
+    if( (!ftp_conn)
+        || IS_STR_NONE(filename)
+        || IS_STR_NONE(dir) )
+    {
+        return ERR_INVALID_PARAM;
+    }
+
+    if((ret = NK_ftp_change_dir(ftp_conn, dir)) < 0)
+        return ret;
+    
+    sprintf(ftp_data_buff, "TYPE I\r\n");
+    if((ret = NK_tcp_sendrecv(ftp_conn->tcp_conn, ftp_data_buff, strlen(ftp_data_buff)))
+                    < 0)
+    {
+        return ret;
+    }
+
+    sprintf(ftp_data_buff, "PASV\r\n");
+    if((ret = NK_tcp_sendrecv(ftp_conn->tcp_conn, ftp_data_buff, strlen(ftp_data_buff)))
+                    < 0)
+    {
+        return ret;
+    }
+    // TODO: Read data port from server and connect to it.
+    // Then RETR.
+    sprintf(ftp_data_buff, "RETR %s\r\n", filename);
+    if((ret = NK_tcp_sendrecv(ftp_conn->tcp_conn, ftp_data_buff, strlen(ftp_data_buff)))
+                    < 0)
+    {
         return ret;
     }
 

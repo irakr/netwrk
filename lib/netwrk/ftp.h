@@ -73,3 +73,23 @@ int NK_ftp_make_connection(NK_ftp_connection_t *ftp_conn,
                             const char *remote_ip, int16_t remote_port,
                             const char *user_name, const char *password);
 
+/**
+ * @brief Go to the directory @dir using FTP CWD command.
+ * 
+ * @param ftp_conn 
+ * @param dir Target directory.
+ * @return int 
+ */
+int NK_ftp_change_dir(NK_ftp_connection_t *ftp_conn, const char *dir);
+
+/**
+ * @brief Download the file @filename located in the directory @dir.
+ * 
+ * @param ftp_conn 
+ * @param filename 
+ * @param dir 
+ * @return int 
+ */
+int NK_ftp_get_file(NK_ftp_connection_t *ftp_conn, const char *filename,
+                    const char *dir);
+
