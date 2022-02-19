@@ -247,18 +247,15 @@ static void* NK_tcp_recv_loop(void *arg)
     // Let the main thread reach shell prompt.
     sleep(1);
 
-    while (NK_tcp_wait(tcp_conn, 90, 0))
-    {
+    while (NK_tcp_wait(tcp_conn, 90, 0)) {
         tcp_conn->recv_data_len = recv(tcp_conn->sock_fd,
                                        tcp_conn->recv_buff,
                                        NK_TCP_MAX_CHUNK_SIZE, 0);
-        if (tcp_conn->recv_data_len == 0)
-        {
+        if (tcp_conn->recv_data_len == 0) {
             printf("Connection closed by remote host.\n");
             return NULL;
         }
-        else if (tcp_conn->recv_data_len < 0)
-        {
+        else if (tcp_conn->recv_data_len < 0) {
             fprintf(stderr, "ERROR: NK_tcp_recv_loop(): recv() returned -1.\n");
             continue;
         }
