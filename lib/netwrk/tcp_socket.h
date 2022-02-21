@@ -24,12 +24,14 @@ typedef int (*NK_tcp_recv_callback_t)(NK_tcp_connection_t *tcp_conn,
 struct _NK_tcp_connection_t
 {
     int sock_fd;
-    int16_t local_port, remote_port;
+    int local_port, remote_port;
     char local_ip[NK_MAX_IPV4_LEN], remote_ip[NK_MAX_IPV4_LEN];
     
     /*
      * Received data is stored raw in this buffer.
      * Currently this buffer is maintained as a simple queue.
+     * @recv_buff: Base pointer of the buffer.
+     *   NK_TCP_MAX_CHUNK_SIZE bytes are pre-allocated on the heap.
      * @recv_buff_head: Data extraction point.
      * @recv_buff_tail: Data insertion point.
      * 
@@ -45,6 +47,7 @@ struct _NK_tcp_connection_t
      * Calls @recv_user_cb when a data received.
      */
     pthread_t recv_loop_thread;
+    uint8_t recv_thread_active;
     NK_tcp_recv_callback_t recv_user_cb;
     void *user_context;
 };
@@ -61,7 +64,7 @@ struct _NK_tcp_connection_t
  * @return int 
  */
 int NK_tcp_make_connection(NK_tcp_connection_t *tcp_conn,
-                            const char* remote_ip, int16_t remote_port,
+                            const char *remote_ip, int remote_port,
                             NK_tcp_recv_callback_t user_cb);
 
 /**
@@ -75,11 +78,11 @@ int NK_tcp_destroy_connection(NK_tcp_connection_t *tcp_conn);
 
 void NK_tcp_reset_recv_buff(NK_tcp_connection_t *tcp_conn);
 
-/*
- * Copies all received data from kernel to app's internal buffer
- * tcp_conn->recv_data_buff. Tries to fill the whole buffer.
+/**
+ * @brief Copies all received data from kernel to app's internal buffer
+ *   tcp_conn->recv_data_buff. Tries to fill the whole buffer.
  */
-int NK_tcp_recv_all(NK_tcp_connection_t *tcp_conn);
+int NK_tcp_recv_internal(NK_tcp_connection_t *tcp_conn);
 
 /**
  * @brief Extract received data stream until the token @until_token.
@@ -108,9 +111,19 @@ int NK_tcp_recv_until(NK_tcp_connection_t *tcp_conn, char *data, ssize_t len,
 int NK_tcp_sendrecv(NK_tcp_connection_t *tcp_conn, const char *data, ssize_t len);
 
 /**
+ * @brief Receive file data. The received data is stored in the file @dest_filename.
+ * 
+ * @param tcp_conn 
+ * @param dest_filename 
+ * @return long Total bytes received for the file. 
+ */
+long NK_tcp_recvfile(NK_tcp_connection_t *tcp_conn, const char *dest_filename);
+
+/**
  * @brief Wait for something on the socket for @sec seconds and
  *   @nsec nanoseconds. Uses select().
  * 
  * @return Return 1(something's up) or 0(nothing, timed out)
  */
 int NK_tcp_wait(NK_tcp_connection_t *tcp_conn, long sec, long nsec);
+

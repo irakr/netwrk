@@ -92,7 +92,7 @@ int NK_ftp_parse_pasv(NK_ftp_connection_t *ftp_conn)
     /* Extract port component */
     port_high = strtoint16(addr_parts.data[4], 10); // high 8-bits
     port_low = strtoint16(addr_parts.data[5], 10); // low 8-bits
-    ftp_conn->server_data_port = 256 * port_high + port_low;
+    ftp_conn->server_data_port = 256 * (int)port_high + (int)port_low;
 
     return 0;
 }
@@ -123,7 +123,7 @@ int NK_ftp_make_connection(NK_ftp_connection_t *ftp_conn,
     /* Make a TCP connection */
 
     ftp_conn->tcp_conn = calloc(1, sizeof(NK_tcp_connection_t));
-    assert_msg( (ftp_conn->tcp_conn != NULL), "ERROR: %s\n", strerror(errno));
+    assert_msg((ftp_conn->tcp_conn != NULL), "ERROR: %s\n", strerror(errno));
 
     ret = NK_tcp_make_connection(
             ftp_conn->tcp_conn, remote_ip, remote_port, NULL);
@@ -131,7 +131,7 @@ int NK_ftp_make_connection(NK_ftp_connection_t *ftp_conn,
         return ret;
     
     /* Discard the banner message first */
-    NK_tcp_recv_all(ftp_conn->tcp_conn);
+    NK_tcp_recv_internal(ftp_conn->tcp_conn);
     printf("%s", ftp_conn->tcp_conn->recv_buff);
     NK_tcp_reset_recv_buff(ftp_conn->tcp_conn);
 
@@ -165,6 +165,7 @@ int NK_ftp_make_connection(NK_ftp_connection_t *ftp_conn,
     if(response->code != FTP_RESP_ACCESS_GRANTED)
         return ERR_AUTH_ERROR;
 
+    ftp_conn->is_logged_in = true;
     /* Login successful */
 
     return 0;
@@ -248,11 +249,23 @@ int NK_ftp_get_file(NK_ftp_connection_t *ftp_conn, const char *filename,
     if(response->code != FTP_RESP_ENTER_PASV)
         return ERR_COMMAND_FAILED;
     
-    // Save PASV data port received from server.
+    /*  Save PASV data port received from server.   */
     if((ret = NK_ftp_parse_pasv(ftp_conn)) < 0)
         return ret;
 
-    // Send RETR command to initiate file download.
+    /* Make data connection and download the file. */
+
+    ftp_conn->data_conn = calloc(1, sizeof(NK_tcp_connection_t));
+    assert_msg((ftp_conn->data_conn != NULL), "ERROR: %s\n", strerror(errno));
+    
+    ret = NK_tcp_make_connection(
+            ftp_conn->data_conn, ftp_conn->tcp_conn->remote_ip,
+            ftp_conn->server_data_port, NULL);
+    if(ret < 0)
+        return ret;
+
+    /* Send RETR command to initiate file download. */
+
     sprintf(ftp_data_buff, "RETR %s\r\n", filename);
     if((ret = NK_tcp_sendrecv(ftp_conn->tcp_conn, ftp_data_buff, strlen(ftp_data_buff)))
                     < 0)
@@ -264,6 +277,11 @@ int NK_ftp_get_file(NK_ftp_connection_t *ftp_conn, const char *filename,
     if(response->code != FTP_RESP_FILE_OK_OPEN_DATACON)
         return ERR_COMMAND_FAILED;
 
+    ret = NK_tcp_recvfile(ftp_conn->data_conn, filename);
+    NK_tcp_destroy_connection(ftp_conn->data_conn);
+    if(ret < 0)
+        return ret;
+    
     return 0;
 }
 

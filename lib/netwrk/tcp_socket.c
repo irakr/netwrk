@@ -21,7 +21,7 @@ static int NK_tcp_create_socket()
 }
 
 int NK_tcp_make_connection(NK_tcp_connection_t *tcp_conn,
-                            const char* remote_ip, int16_t remote_port,
+                            const char *remote_ip, int remote_port,
                             NK_tcp_recv_callback_t user_cb)
 {
     static const char default_local_ip[] = "0.0.0.0";
@@ -30,12 +30,15 @@ int NK_tcp_make_connection(NK_tcp_connection_t *tcp_conn,
     int ret;
 
     if( (!tcp_conn)
-        || (!remote_ip) || !strlen(remote_ip)
+        || IS_STR_NONE(remote_ip)
         || (remote_port < 0) )
     {
         return ERR_INVALID_PARAM;
     }
     
+    printf("NK_tcp_make_connection(): Making TCP connection to %s:%d\n",
+        remote_ip, remote_port);
+
     /* Making a clean copy of *tcp_conn. */
     memset(tcp_conn, 0, sizeof(NK_tcp_connection_t));
 
@@ -86,6 +89,7 @@ int NK_tcp_make_connection(NK_tcp_connection_t *tcp_conn,
         return ERR_PTHREAD_ERROR;
     }
     tcp_conn->recv_loop_thread = recv_loop_thread;
+    tcp_conn->recv_thread_active = 1;
 
     // pthread_detach(recv_loop_thread);
 
@@ -99,7 +103,9 @@ int NK_tcp_destroy_connection(NK_tcp_connection_t *tcp_conn)
     if( !tcp_conn || (tcp_conn->sock_fd < 0) )
         return ERR_INVALID_PARAM;
     close(tcp_conn->sock_fd);
-    pthread_join(tcp_conn->recv_loop_thread, &thread_ret);
+    tcp_conn->sock_fd = -1;
+    if(tcp_conn->recv_thread_active)
+        pthread_join(tcp_conn->recv_loop_thread, &thread_ret);
     return 0;
 }
 
@@ -110,7 +116,7 @@ void NK_tcp_reset_recv_buff(NK_tcp_connection_t *tcp_conn)
     tcp_conn->recv_data_len = 0;
 }
 
-int NK_tcp_recv_all(NK_tcp_connection_t *tcp_conn)
+int NK_tcp_recv_internal(NK_tcp_connection_t *tcp_conn)
 {
     int ret;
     size_t recv_len, recv_buff_size;
@@ -166,7 +172,7 @@ int NK_tcp_recv_until(NK_tcp_connection_t *tcp_conn, char *data, ssize_t len,
     if( !data || (len < 0) )
         return ERR_INVALID_PARAM;
     
-    ret = NK_tcp_recv_all(tcp_conn);
+    ret = NK_tcp_recv_internal(tcp_conn);
     if( (ret < 0) && (ret != ERR_BUFFER_FULL))
         return ret;
 
@@ -180,7 +186,7 @@ int NK_tcp_recv_until(NK_tcp_connection_t *tcp_conn, char *data, ssize_t len,
     return ret;
 }
 
-int NK_tcp_sendrecv(NK_tcp_connection_t *tcp_conn, const char *data, ssize_t len)
+int NK_tcp_send(NK_tcp_connection_t *tcp_conn, const char *data, ssize_t len)
 {
     const char *data_ptr = data;
     ssize_t bytes_left = len, ret = 0;
@@ -197,6 +203,21 @@ int NK_tcp_sendrecv(NK_tcp_connection_t *tcp_conn, const char *data, ssize_t len
         bytes_left -= ret;
     }
 
+    return len - bytes_left;
+}
+
+int NK_tcp_sendrecv(NK_tcp_connection_t *tcp_conn, const char *data, ssize_t len)
+{
+    const char *data_ptr = data;
+    ssize_t bytes_left = len, ret = 0;
+
+    if( !tcp_conn || (tcp_conn->sock_fd < 0)
+        || !data || (len < 0) )
+        return ERR_INVALID_PARAM;
+    
+    if((ret = NK_tcp_send(tcp_conn, data, len)) <= 0)
+        return ret;
+
     memset(tcp_conn->recv_buff, 0, sizeof(tcp_conn->recv_buff));
     ret = recv(tcp_conn->sock_fd, tcp_conn->recv_buff, NK_TCP_MAX_CHUNK_SIZE, 0);
     if(ret < 0)
@@ -206,6 +227,29 @@ int NK_tcp_sendrecv(NK_tcp_connection_t *tcp_conn, const char *data, ssize_t len
     
     tcp_conn->recv_data_len = ret;
     return ret;
+}
+
+long NK_tcp_recvfile(NK_tcp_connection_t *tcp_conn, const char *dest_filename)
+{
+    FILE *dest_fp;
+    long bytes_written = 0;
+
+    if( !tcp_conn || (tcp_conn->sock_fd < 0)
+        || IS_STR_NONE(dest_filename) )
+        return ERR_INVALID_PARAM;
+    
+    dest_fp = fopen(dest_filename, "wb");
+    if(!dest_fp)
+        return ERR_FILE_OPEN_ERROR;
+    
+    while(NK_tcp_recv_internal(tcp_conn) > 0) {
+        bytes_written += fwrite(tcp_conn->recv_buff_head,
+                               1, tcp_conn->recv_data_len, dest_fp);
+        printf("Bytes received: %ld bytes\n", bytes_written);
+    }
+    
+    fclose(dest_fp);
+    return bytes_written;
 }
 
 int NK_tcp_wait(NK_tcp_connection_t *tcp_conn, long sec, long nsec)

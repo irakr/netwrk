@@ -39,3 +39,4 @@
 #define ERR_BUFFER_CLEARED      -17
 #define ERR_AUTH_ERROR          -18
 #define ERR_COMMAND_FAILED      -19
+#define ERR_FILE_OPEN_ERROR     -20
