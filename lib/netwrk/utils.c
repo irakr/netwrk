@@ -105,3 +105,19 @@ int shell_input(char *in, ssize_t max_len)
 	} while(!(len = strlen(in)));
 	return len;
 }
+
+int NK_parse_fileinfo(const char *filepath, size_t len, NK_file_info_t *file_info)
+{
+	if( IS_STR_NONE(filepath)
+		|| (len <= 0) || !file_info )
+	{
+		return ERR_INVALID_PARAM;
+	}
+	
+	strcpy(file_info->target_filepath, filepath);
+	file_info->filename = strrchr(filepath, '/') + 1;
+	strncpy(file_info->directory, filepath, file_info->filename - filepath);
+
+	return 0;
+}
+

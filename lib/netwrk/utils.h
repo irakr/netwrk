@@ -98,3 +98,24 @@ void *memmem_c(const void *haystack, size_t haystacklen,
  */
 int shell_input(char *in, ssize_t max_len);
 
+/**
+ * @brief A simple data structure to store file path components.
+ * 
+ */
+typedef struct _NK_file_info_t
+{
+	char target_filepath[1024]; /* Original file path */
+	char directory[1024];  /* Directory portion */
+	char *filename; /* Filename portion */
+} NK_file_info_t;
+
+/**
+ * @brief Parse file path.
+ * 
+ * @param filepath 
+ * @param len 
+ * @param file_info 
+ * @return int 
+ */
+int NK_parse_fileinfo(const char *filepath, size_t len, NK_file_info_t *file_info);
+
