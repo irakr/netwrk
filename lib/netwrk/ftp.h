@@ -89,11 +89,15 @@ typedef struct _NK_ftp_connection_t {
  * @param user_name If empty string or NULL then anonymous login will be
  *   performed.
  * @param password 
+ * @param banner_msg (Optional) You can provide a string buffer to get the
+ *   banner message string sent by the server.
+ * @param banner_msg_len Length of banner_msg buffer.
  * @return int 
  */
 int NK_ftp_make_connection(NK_ftp_connection_t *ftp_conn,
                             const char *remote_ip, int16_t remote_port,
-                            const char *user_name, const char *password);
+                            const char *user_name, const char *password,
+                            char *banner_msg, size_t banner_msg_len);
 
 /**
  * @brief Go to the directory @dir using FTP CWD command.

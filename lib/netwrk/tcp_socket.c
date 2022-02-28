@@ -299,7 +299,7 @@ long NK_tcp_recvfile(NK_tcp_connection_t *tcp_conn, const char *dest_filename)
             break;
         bytes_written += fwrite(tcp_conn->recv_buff_head,
                                 1, tcp_conn->recv_data_len, dest_fp);
-        printf("\rReceived: %ld bytes.",
+        printf("\r[Status]\t\tReceived: %ld bytes.",
                bytes_written);
     }
     puts("");

@@ -14,6 +14,8 @@
 
 #define MAX_CMD_LEN		2049
 
+char banner_msg[512];
+
 int main(int argc, const char *argv[])
 {
 	NK_ftp_connection_t ftp_conn;
@@ -37,26 +39,33 @@ int main(int argc, const char *argv[])
 		return EXIT_FAILURE;
 	}
 
-	printf("################ Simple FTP client - by irakr ################\n");
+	printf("################################################\n"
+		"\tSimple FTP file downloader - by irakr\n"
+		"################################################\n");
 	
 	/*
 	 * Establish connection and LOGIN.
 	 */
 	if(NK_ftp_make_connection(&ftp_conn,
-			FTP_SERVER_IP, FTP_SERVER_PORT, NULL, NULL)
+			FTP_SERVER_IP, FTP_SERVER_PORT, NULL, NULL,
+			banner_msg, sizeof(banner_msg))
 		< 0)
 	{
 		return EXIT_FAILURE;
 	}
 	
-	printf("++++++++++ Connected to FTP server: %s:%d ++++++++++\n",
+	printf("[Connected]\n"
+		   "IP: %s\nPort:%d\n",
 			FTP_SERVER_IP, FTP_SERVER_PORT);
+	printf("+++++++++++++ Banner message from the server +++++++++++++\n%s"
+		   "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\n",
+		   banner_msg);
 
 	if(NK_ftp_get_file(&ftp_conn, file_info.filename, file_info.directory) < 0) {
 		fprintf(stderr, "ERROR: Failed to download file /zoc/zoc.exe\n");
 		return EXIT_FAILURE;
 	}
-	printf("Download completed.\n");
+	printf("\nDownload completed.\n");
 	
 	/* End connection. */
 

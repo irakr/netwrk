@@ -97,11 +97,11 @@ int NK_ftp_parse_pasv(NK_ftp_connection_t *ftp_conn)
 
 int NK_ftp_make_connection(NK_ftp_connection_t *ftp_conn,
                             const char *remote_ip, int16_t remote_port,
-                            const char *user_name, const char *password)
+                            const char *user_name, const char *password,
+                            char *banner_msg, size_t banner_msg_len)
 {
     int ret = 0;
     NK_ftp_response_t *response;
-    char banner_msg[512];
 
     if( (!ftp_conn)
         || IS_STR_NONE(remote_ip)
@@ -129,13 +129,12 @@ int NK_ftp_make_connection(NK_ftp_connection_t *ftp_conn,
     if(ret != 0)
         return ret;
     
-    /* Discard the banner message first */
-    ret = NK_tcp_recv_until(ftp_conn->tcp_conn, banner_msg,
-            sizeof(banner_msg) - 1, "\r\n");
-    if(ret < 0)
-        return ERR_CONNECTION_ERROR;
-    printf("%s", banner_msg);
-    NK_tcp_reset_recv_buff(ftp_conn->tcp_conn);
+    /* Optional: Save the banner message first */
+    if(banner_msg && (banner_msg_len > 0)) {
+        ret = NK_tcp_recv_until(ftp_conn->tcp_conn, banner_msg,
+                banner_msg_len - 1, "\r\n");
+        NK_tcp_reset_recv_buff(ftp_conn->tcp_conn);
+    }
 
     response = &ftp_conn->current_response;
 
