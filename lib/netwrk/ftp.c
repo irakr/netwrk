@@ -11,8 +11,7 @@ static char ftp_data_buff[NK_TCP_MAX_CHUNK_SIZE];
 static int NK_ftp_parse_response(NK_ftp_connection_t *ftp_conn)
 {
     char *recv_data;
-    int recv_len, tokens, ret;
-    NK_string_list_t parsed_list;
+    int ret;
 
     if(!ftp_conn || !ftp_conn->tcp_conn
         || IS_STR_NONE(ftp_conn->tcp_conn->recv_buff)
@@ -22,10 +21,6 @@ static int NK_ftp_parse_response(NK_ftp_connection_t *ftp_conn)
     }
     
     recv_data = ftp_conn->tcp_conn->recv_buff;
-    recv_len  = ftp_conn->tcp_conn->recv_data_len;
-
-    // if(strsplit(recv_data, recv_len, " ", &parsed_list) <= 0)
-    //     return ERR_PARSE_ERROR;
 
     ret = sscanf(recv_data, "%hd %[^\n]s", &ftp_conn->current_response.code,
                         ftp_conn->current_response.message);
@@ -41,7 +36,7 @@ int NK_ftp_parse_pasv(NK_ftp_connection_t *ftp_conn)
     NK_string_list_t addr_parts;
     int16_t port_high, port_low;
     char response_msg[MAX_LEN_RESPONSE_MESSAGE], *open_parenthesis,
-         *close_parenthesis, *pasv_addr_str, ip_addr_str[NK_MAX_IPV4_LEN];
+         *close_parenthesis;
 
     if(!ftp_conn || !ftp_conn->tcp_conn
         || (ftp_conn->current_response.code != FTP_RESP_ENTER_PASV)

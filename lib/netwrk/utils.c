@@ -84,12 +84,14 @@ int strsplit(char *s, size_t len, const char *delim, NK_string_list_t *result)
 	return result->rows;
 }
 
+#if 0
 void *memmem_c(const void *haystack, size_t haystacklen,
                     const void *needle, size_t needlelen)
 {
 	return (void*)(memmem(haystack, haystacklen, needle, needlelen)
 			& 0x7fffffffffff);
 }
+#endif
 
 int shell_input(char *in, ssize_t max_len)
 {

@@ -19,8 +19,6 @@ char banner_msg[512];
 int main(int argc, const char *argv[])
 {
 	NK_ftp_connection_t ftp_conn;
-	char input_cmd[MAX_CMD_LEN];
-	int cmd_len = 0, exit = 0;
 	NK_file_info_t file_info;
 
 	/*
