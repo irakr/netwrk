@@ -28,7 +28,7 @@ int main()
 	
 	printf("++++++++++ Connected to FTP server: %s:%d ++++++++++\n", FTP_SERVER_IP, FTP_SERVER_PORT);
 
-	if(NK_ftp_get_file(&ftp_conn, "zoc.exe", "/zoc") < 0) {
+	if(NK_ftp_get_file(&ftp_conn, "zoc_changes.txt", "/zoc") < 0) {
 		fprintf(stderr, "ERROR: Failed to download file /zoc/zoc.exe\n");
 	}
 

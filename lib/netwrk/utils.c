@@ -1,8 +1,6 @@
+#include <stdio.h>
 #include "netwrk/netwrk.h"
 #include "netwrk/utils.h"
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 
 int16_t strtoint16(const char *s, int base)
 {
@@ -20,7 +18,7 @@ int strtoint(const char *s, int base)
 
 int stroccurence(const char *s, size_t len, const char *sub_str)
 {
-	char *s_ptr;
+	const char *s_ptr;
 	int count = 0;
 
 	if(!s || !sub_str)
@@ -84,6 +82,13 @@ int strsplit(char *s, size_t len, const char *delim, NK_string_list_t *result)
 	}
 
 	return result->rows;
+}
+
+void *memmem_c(const void *haystack, size_t haystacklen,
+                    const void *needle, size_t needlelen)
+{
+	return (void*)(memmem(haystack, haystacklen, needle, needlelen)
+			& 0x7fffffffffff);
 }
 
 int shell_input(char *in, ssize_t max_len)

@@ -55,7 +55,7 @@ typedef struct _NK_ftp_request_t {
  */
 typedef struct _NK_ftp_response_t {
     int16_t code;
-    const char message[MAX_LEN_RESPONSE_MESSAGE];
+    char message[MAX_LEN_RESPONSE_MESSAGE];
     void *data;
 } NK_ftp_response_t;
 

@@ -1,6 +1,4 @@
 #include "netwrk/ftp.h"
-#include <string.h>
-#include <stdlib.h>
 
 static char ftp_data_buff[NK_TCP_MAX_CHUNK_SIZE];
 
@@ -29,7 +27,7 @@ static int NK_ftp_parse_response(NK_ftp_connection_t *ftp_conn)
     // if(strsplit(recv_data, recv_len, " ", &parsed_list) <= 0)
     //     return ERR_PARSE_ERROR;
 
-    ret = sscanf(recv_data, "%d %[^\n]s", &ftp_conn->current_response.code,
+    ret = sscanf(recv_data, "%hd %[^\n]s", &ftp_conn->current_response.code,
                         ftp_conn->current_response.message);
     if(ret <= 0)
         return ERR_PARSE_ERROR;
@@ -103,6 +101,7 @@ int NK_ftp_make_connection(NK_ftp_connection_t *ftp_conn,
 {
     int ret = 0;
     NK_ftp_response_t *response;
+    char banner_msg[512];
 
     if( (!ftp_conn)
         || IS_STR_NONE(remote_ip)
@@ -131,8 +130,11 @@ int NK_ftp_make_connection(NK_ftp_connection_t *ftp_conn,
         return ret;
     
     /* Discard the banner message first */
-    NK_tcp_recv_internal(ftp_conn->tcp_conn);
-    printf("%s", ftp_conn->tcp_conn->recv_buff);
+    ret = NK_tcp_recv_until(ftp_conn->tcp_conn, banner_msg,
+            sizeof(banner_msg) - 1, "\r\n");
+    if(ret < 0)
+        return ERR_CONNECTION_ERROR;
+    printf("%s", banner_msg);
     NK_tcp_reset_recv_buff(ftp_conn->tcp_conn);
 
     response = &ftp_conn->current_response;
@@ -227,6 +229,7 @@ int NK_ftp_get_file(NK_ftp_connection_t *ftp_conn, const char *filename,
     if((ret = NK_ftp_change_dir(ftp_conn, dir)) < 0)
         return ret;
     
+    /* We will consider Image/Binary type data for all data. */
     sprintf(ftp_data_buff, "TYPE I\r\n");
     if((ret = NK_tcp_sendrecv(ftp_conn->tcp_conn, ftp_data_buff, strlen(ftp_data_buff)))
                     < 0)
@@ -255,7 +258,7 @@ int NK_ftp_get_file(NK_ftp_connection_t *ftp_conn, const char *filename,
 
     /* Make data connection and download the file. */
 
-    ftp_conn->data_conn = calloc(1, sizeof(NK_tcp_connection_t));
+    ftp_conn->data_conn = (NK_tcp_connection_t*)malloc(sizeof(NK_tcp_connection_t));
     assert_msg((ftp_conn->data_conn != NULL), "ERROR: %s\n", strerror(errno));
     
     ret = NK_tcp_make_connection(

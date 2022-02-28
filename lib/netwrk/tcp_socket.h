@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include "netwrk/ip.h"
 
-#define NK_TCP_MAX_CHUNK_SIZE		(1 << 13)
+#define NK_TCP_MAX_CHUNK_SIZE		((size_t)(1 << 13))
 
 typedef struct _NK_tcp_connection_t NK_tcp_connection_t;
 
@@ -32,8 +32,8 @@ struct _NK_tcp_connection_t
      * Currently this buffer is maintained as a simple queue.
      * @recv_buff: Base pointer of the buffer.
      *   NK_TCP_MAX_CHUNK_SIZE bytes are pre-allocated on the heap.
-     * @recv_buff_head: Data extraction point.
-     * @recv_buff_tail: Data insertion point.
+     * @recv_buff_head: Base pointer to the unprocessed data.
+     * @recv_buff_tail: End pointer to the unprocessed data.
      * 
      * TODO: Make this a ring buffer.
      */
@@ -79,21 +79,34 @@ int NK_tcp_destroy_connection(NK_tcp_connection_t *tcp_conn);
 void NK_tcp_reset_recv_buff(NK_tcp_connection_t *tcp_conn);
 
 /**
+ * @brief Receive a single message.
+ * 
+ * @param tcp_conn 
+ * @param data 
+ * @param len 
+ * @return ssize_t No. of bytes read. ERR_XXX on error. 
+ */
+ssize_t NK_tcp_recv(NK_tcp_connection_t *tcp_conn, char *data, size_t len);
+
+/**
  * @brief Copies all received data from kernel to app's internal buffer
  *   tcp_conn->recv_data_buff. Tries to fill the whole buffer.
+ *   Use this function only when reading data freshly and throughout.
+ *   This is used by NK_tcp_recvfile() like functions.
  */
-int NK_tcp_recv_internal(NK_tcp_connection_t *tcp_conn);
+int NK_tcp_recv_fill_buff(NK_tcp_connection_t *tcp_conn);
 
 /**
  * @brief Extract received data stream until the token @until_token.
- * 
+ *   It makes use of the head and tail pointer of the internal buffer
+ *   so do not mix it up with NK_tcp_recv_fill_buff().
  * @param tcp_conn 
  * @param data 
  * @param len 
  * @param until_token 
  * @return int 
  */
-int NK_tcp_recv_until(NK_tcp_connection_t *tcp_conn, char *data, ssize_t len,
+int NK_tcp_recv_until(NK_tcp_connection_t *tcp_conn, char *data, size_t len,
                       const char *until_token);
 
 /**
@@ -120,10 +133,11 @@ int NK_tcp_sendrecv(NK_tcp_connection_t *tcp_conn, const char *data, ssize_t len
 long NK_tcp_recvfile(NK_tcp_connection_t *tcp_conn, const char *dest_filename);
 
 /**
- * @brief Wait for something on the socket for @sec seconds and
- *   @nsec nanoseconds. Uses select().
+ * @brief Wait for something on the socket @sockfd for
+ *   @sec seconds and @nsec nanoseconds.
+ *   Uses select().
  * 
  * @return Return 1(something's up) or 0(nothing, timed out)
  */
-int NK_tcp_wait(NK_tcp_connection_t *tcp_conn, long sec, long nsec);
+int NK_tcp_wait(int sockfd, long sec, long nsec);
 

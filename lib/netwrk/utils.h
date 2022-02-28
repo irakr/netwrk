@@ -76,6 +76,19 @@ char* strtrim(char **s, size_t len);
 int strsplit(char *s, size_t len, const char *delim, NK_string_list_t *result);
 
 /**
+ * @brief Wrapper over memmem(). It just corrects the address value
+ *   returned by memmem().
+ * 
+ * @param haystack 
+ * @param haystacklen 
+ * @param needle 
+ * @param needlelen 
+ * @return void* 
+ */
+void *memmem_c(const void *haystack, size_t haystacklen,
+                    const void *needle, size_t needlelen);
+
+/**
  * @brief Read string input from stdin. Repeats reading if input is empty
  * or contains only whitespaces.
  * 
