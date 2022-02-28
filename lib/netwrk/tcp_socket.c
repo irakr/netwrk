@@ -35,8 +35,8 @@ int NK_tcp_make_connection(NK_tcp_connection_t *tcp_conn,
         return ERR_INVALID_PARAM;
     }
     
-    printf("NK_tcp_make_connection(): Making TCP connection to %s:%d\n",
-        remote_ip, remote_port);
+    // printf("NK_tcp_make_connection(): Making TCP connection to %s:%d\n",
+    //     remote_ip, remote_port);
 
     /* Making a clean copy of *tcp_conn. */
     memset(tcp_conn, 0, sizeof(NK_tcp_connection_t));
@@ -76,7 +76,7 @@ int NK_tcp_make_connection(NK_tcp_connection_t *tcp_conn,
      * receive thread.
      */
     if(!user_cb) {
-        printf("%s(): No user callback registered.\n", __FUNCTION__);
+        // printf("%s(): No user callback registered.\n", __FUNCTION__);
         return 0;
     }
 
@@ -120,7 +120,7 @@ void NK_tcp_reset_recv_buff(NK_tcp_connection_t *tcp_conn)
 int NK_tcp_recv_fill_buff(NK_tcp_connection_t *tcp_conn)
 {
     int ret;
-    ssize_t bytes_read, recv_len, max_recv_len;
+    ssize_t bytes_read, bytes_available, recv_len, max_recv_len;
     char *data_ptr, *recv_buff_end;
 
     if( !tcp_conn || (tcp_conn->sock_fd < 0) )
@@ -136,13 +136,11 @@ int NK_tcp_recv_fill_buff(NK_tcp_connection_t *tcp_conn)
     data_ptr = tcp_conn->recv_buff;
     recv_buff_end = tcp_conn->recv_buff + max_recv_len - 1;
 
-    printf("select() wait...\n");
     ret = NK_tcp_wait(tcp_conn->sock_fd, 60, 0);
     if(ret == 0)
         return ERR_READ_TIMEDOUT;
     else if(ret < 0)
         return ERR_CONNECTION_ERROR;
-    printf("select() ok. ret = %d.\n", ret);
 
     /* Try to fill the internal buffer till NK_TCP_MAX_CHUNK_SIZE.  */
     while( ((size_t)data_ptr - (size_t)tcp_conn->recv_buff) < NK_TCP_MAX_CHUNK_SIZE ) {
@@ -153,8 +151,12 @@ int NK_tcp_recv_fill_buff(NK_tcp_connection_t *tcp_conn)
             break;
         }
         
-        bytes_read = recv(tcp_conn->sock_fd, data_ptr, recv_len, MSG_DONTWAIT);
-        
+        bytes_read = -1;
+        bytes_available = recv(tcp_conn->sock_fd, data_ptr, recv_len, MSG_PEEK);
+        if(bytes_available >= 0) {
+            bytes_read = recv(tcp_conn->sock_fd, data_ptr,
+                              bytes_available, MSG_DONTWAIT);
+        }
         /* errno == EAGAIN if recv_len > actual_read */
         if(errno == EAGAIN) {
             data_ptr += bytes_read;
@@ -167,7 +169,7 @@ int NK_tcp_recv_fill_buff(NK_tcp_connection_t *tcp_conn)
             break;
         }
         if(bytes_read == 0) {
-            printf("recv(0): %s.\n", strerror(errno));
+            // printf("recv(0): %s.\n", strerror(errno));
             ret = 0;
             break;
         }
@@ -297,11 +299,11 @@ long NK_tcp_recvfile(NK_tcp_connection_t *tcp_conn, const char *dest_filename)
             break;
         bytes_written += fwrite(tcp_conn->recv_buff_head,
                                 1, tcp_conn->recv_data_len, dest_fp);
-        printf("Received: %ld bytes.\n",
+        printf("\rReceived: %ld bytes.",
                bytes_written);
     }
     puts("");
-    printf("ret: %d, bytes_read: %d\n", ret, bytes_read);
+    // printf("ret: %d, bytes_read: %d, %s\n", ret, bytes_read, strerror(errno));
     fclose(dest_fp);
     return bytes_written;
 }
@@ -355,7 +357,7 @@ static void* NK_tcp_recv_loop(void *arg)
                                        tcp_conn->recv_buff,
                                        NK_TCP_MAX_CHUNK_SIZE, 0);
         if (tcp_conn->recv_data_len == 0) {
-            printf("Connection closed by remote host.\n");
+            printf("INFO: Connection closed by remote host.\n");
             return NULL;
         }
         else if (tcp_conn->recv_data_len < 0) {
@@ -367,7 +369,7 @@ static void* NK_tcp_recv_loop(void *arg)
         if (tcp_conn->recv_user_cb)
             tcp_conn->recv_user_cb(tcp_conn, tcp_conn->user_context);
         else
-            printf("??? User callback not set ???\nData:\n%s\n",
+            printf("INFO: User callback not set ???\nData:\n%s\n",
                    tcp_conn->recv_buff);
     }
 
