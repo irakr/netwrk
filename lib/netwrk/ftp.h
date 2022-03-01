@@ -1,7 +1,7 @@
 #pragma once
 
 #include "netwrk/netwrk.h"
-#include "netwrk/tcp_socket.h"
+#include "netwrk/tcp_conn.h"
 
 #define NK_FTP_DEFAULT_PORT         21
 

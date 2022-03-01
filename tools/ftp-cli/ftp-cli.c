@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "netwrk/netwrk.h"
-#include "netwrk/tcp_socket.h"
+#include "netwrk/tcp_conn.h"
 #include "netwrk/ftp.h"
 
 #define USAGE_STR	\

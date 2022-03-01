@@ -3,7 +3,7 @@
 #include <time.h>
 #include <sys/select.h>
 #include <pthread.h>
-#include "netwrk/tcp_socket.h"
+#include "netwrk/tcp_conn.h"
 #include "netwrk/utils.h"
 
 static void* NK_tcp_recv_loop(void *tcp_conn);
