@@ -9,4 +9,8 @@
 - Set SYSROOT_DIR according to TOOLCHAIN_PREFIX.
 - Write makefiles to build lib/netwrk/*.c as libnetwrk.so or libnetwrk.a.
 - Add signal handlers. SIGABRT, SIGKILL, etc to properly handle signals.
+- All null checks at the beginning of functions must assert().
+
+ISSUES
+- recv() on the same socket is being called simultaneously.
 
