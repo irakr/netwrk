@@ -3,7 +3,7 @@ A collection of useful, yet to be cross platform, networking tools.
 The purpose of this project is to learn how to implement networking protocols and tools from scratch.
 
 Each networking tools and protocol implementations resides inside the `tools/` directory.
-Some of the core and common code are in the `lib/` directory.
+The core networking routines and other utilities are in the `lib/` directory.
 
 **Tools currrently available**
 
