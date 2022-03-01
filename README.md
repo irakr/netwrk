@@ -1,5 +1,17 @@
 # netwrk
-A collection of useful cross platform networking tools.
+A collection of useful, yet to be cross platform, networking tools.
+The purpose of this project is to learn how to implement networking protocols and tools from scratch.
+
+Each networking tools and protocol implementations resides inside the `tools/` directory.
+Some of the core and common code are in the `lib/` directory.
+
+**Tools currrently available**
+
+1. **ftp-cli**: An FTP file downloader tool. A typical implementation of the FTP download protocol.
+```
+Usage:
+ftp-cli <remote-filepath>
+```
 
 **Steps to build**
 
@@ -7,9 +19,10 @@ A collection of useful cross platform networking tools.
    ```
    $ cd tools/ftp-cli
    $ make
+   $ ./ftp-cli <remote-filepath>
    ```
 
-**Cross compiling(Example: For raspberry pi)**
+**Cross compiling(For raspberry pi)**
 
 1. First setup sysroot for the target platform. You can create a sysroot using the help of this repo ->
    [irakr/RPi-Cross-Build-Environment](https://github.com/irakr/RPi-Cross-Build-Environment).
