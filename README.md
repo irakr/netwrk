@@ -7,10 +7,13 @@ The core networking routines and other utilities are in the `lib/` directory.
 
 **Tools currrently available**
 
-1. **ftp-cli**: An FTP file downloader tool. A typical implementation of the FTP download protocol.
+1. **ftp-cli**: An FTP file downloader tool. A very minimal implementation of the FTP download protocol.
 ```
 Usage:
-ftp-cli <remote-filepath>
+ftp-cli <ftp-url>
+
+Example:
+ftp-cli ftp://134.119.8.75/zoc/zoc.exe
 ```
 
 **Steps to build**
@@ -19,7 +22,7 @@ ftp-cli <remote-filepath>
    ```
    $ cd tools/ftp-cli
    $ make
-   $ ./ftp-cli <remote-filepath>
+   $ ./ftp-cli <ftp-url>
    ```
 
 **Cross compiling(For raspberry pi)**
