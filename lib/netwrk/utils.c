@@ -110,6 +110,8 @@ int shell_input(char *in, ssize_t max_len)
 
 int NK_parse_fileinfo(const char *filepath, size_t len, NK_file_info_t *file_info)
 {
+	size_t dir_len;
+
 	if( IS_STR_NONE(filepath)
 		|| (len <= 0) || !file_info )
 	{
@@ -118,7 +120,9 @@ int NK_parse_fileinfo(const char *filepath, size_t len, NK_file_info_t *file_inf
 	
 	strcpy(file_info->target_filepath, filepath);
 	file_info->filename = strrchr(filepath, '/') + 1;
-	strncpy(file_info->directory, filepath, file_info->filename - filepath);
+	dir_len = (size_t)(file_info->filename - filepath);
+	strncpy(file_info->directory, filepath, dir_len);
+	file_info->directory[dir_len] = '\0';
 
 	return 0;
 }

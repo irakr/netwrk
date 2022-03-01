@@ -3,6 +3,8 @@
 #include "netwrk/netwrk.h"
 #include "netwrk/tcp_socket.h"
 
+#define NK_FTP_DEFAULT_PORT         21
+
 #define MAX_LEN_USERNAME	        128
 #define MAX_LEN_PASSWORD	        256
 #define MAX_LEN_RESPONSE_MESSAGE    1024
@@ -77,6 +79,41 @@ typedef struct _NK_ftp_connection_t {
     int server_data_port;   /* Data port received from server PASV response */
 
 } NK_ftp_connection_t;
+
+/**
+ * @brief Data structure that defines an FTP URL.
+ * 
+ */
+#define NK_FTP_MAX_URL_LEN          1024
+#define NK_FTP_MAX_FQDN_LEN         256
+#define NK_FTP_MAX_USERNAME_LEN     128
+#define NK_FTP_MAX_PASSWORD_LEN     128
+typedef struct _NK_ftp_url_t
+{
+    /* URL string. */
+    char url[NK_FTP_MAX_URL_LEN];
+
+    /* Credentials */
+    char username[NK_FTP_MAX_USERNAME_LEN],
+         password[NK_FTP_MAX_PASSWORD_LEN];
+    
+    /* Remote host address  */
+    char remote_fqdn[NK_FTP_MAX_FQDN_LEN], remote_ip[NK_MAX_IPV4_LEN];
+    int remote_port;
+
+    /* Remote file path info    */
+    NK_file_info_t remote_fileinfo;
+
+} NK_ftp_url_t;
+
+/**
+ * @brief Parse an FTP URL provided in @ftp_url into @furl.
+ * 
+ * @param ftp_url_str Original FTP URL string.
+ * @param ftp_url Parsed FTP info.
+ * @return int 
+ */
+int NK_ftp_parse_url(const char *ftp_url_str, NK_ftp_url_t *ftp_url);
 
 /**
  * @brief Login to FTP server at @remote_ip:@remote_port using the

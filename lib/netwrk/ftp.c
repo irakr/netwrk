@@ -2,6 +2,79 @@
 
 static char ftp_data_buff[NK_TCP_MAX_CHUNK_SIZE];
 
+int NK_ftp_parse_url(const char *ftp_url_str, NK_ftp_url_t *ftp_url)
+{
+    char *p_substr = ftp_url_str, *p_substr1, *p_substr2;
+    int ret;
+
+    if( IS_STR_NONE(ftp_url_str) || !ftp_url)
+        return ERR_INVALID_PARAM;
+    
+    memset(ftp_url, 0, sizeof(NK_ftp_url_t));
+    
+    /* Check 'ftp://' prefix  */
+    if(strncmp(ftp_url_str, "ftp://", 6))
+        return ERR_PARSE_ERROR;
+    
+    strncpy(ftp_url->url, ftp_url_str,
+             NK_MIN(sizeof(ftp_url->url), strlen(ftp_url_str)));
+    
+    p_substr += 6; /* After ftp:// */
+    
+    /* Parse username:password */
+    if(strstr(p_substr, "@")) {
+        /* Get username */
+        p_substr1 = strtok(p_substr, ":");
+        if(!p_substr1)
+            return ERR_PARSE_ERROR;
+        strcpy(ftp_url->username, p_substr1);
+        p_substr += strlen(p_substr1) + 1;
+
+        /* Get password */
+        p_substr1 = strtok(NULL, "@");
+        if(!p_substr1)
+            return ERR_PARSE_ERROR;
+        strcpy(ftp_url->password, p_substr1);
+        p_substr += strlen(p_substr1) + 1;
+    }
+    
+    // ftp://ftp.funet.fi/pub/standards/RFC/rfc959.txt
+    
+    /* Extract resource path.
+     * Ignoring the query parameters currently.
+     */
+    if((ret = NK_parse_fileinfo(strstr(p_substr, "/"), strlen(p_substr),
+              &ftp_url->remote_fileinfo)) < 0)
+    {
+        return ERR_PARSE_ERROR;
+    }
+
+    /* Parse host FQDN or IP. */
+    p_substr1 = strtok(p_substr, "/");
+    if (!p_substr1)
+        return ERR_PARSE_ERROR;
+    
+    /* Check if port is provided. */
+    p_substr2 = strstr(p_substr1, ":");
+    if(p_substr2) {
+        *p_substr2 = '\0';
+        strcpy(ftp_url->remote_fqdn, p_substr1);
+        p_substr2++;
+        ftp_url->remote_port = (p_substr2)
+                                ? strtoint(p_substr2, 10)
+                                : NK_FTP_DEFAULT_PORT;
+    }
+    else {
+        strcpy(ftp_url->remote_fqdn, p_substr1);
+        ftp_url->remote_port = NK_FTP_DEFAULT_PORT;
+    }
+    
+    ret = NK_inet_get_host_ipv4(ftp_url->remote_fqdn,
+            ftp_url->remote_ip, sizeof(ftp_url->remote_ip));
+
+    return ret;
+}
+
 /**
  * @brief Parse the response string into ftp_conn->current_reponse.
  * 

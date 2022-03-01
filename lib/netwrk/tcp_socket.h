@@ -1,10 +1,11 @@
 #pragma once
 
 #include "netwrk/netwrk.h"
+#include <sys/types.h>
+#include <netdb.h>
 #include <sys/socket.h>
-#include <arpa/inet.h>
 #include <unistd.h>
-#include "netwrk/ip.h"
+#include "netwrk/inet.h"
 
 #define NK_TCP_MAX_CHUNK_SIZE		((size_t)(1 << 13))
 
