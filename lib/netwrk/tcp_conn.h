@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include "netwrk/inet.h"
 
-#define NK_TCP_MAX_CHUNK_SIZE		((size_t)(1 << 13))
+#define NK_TCP_MAX_CHUNK_SIZE		((size_t)(65536))
 
 typedef struct _NK_tcp_connection_t NK_tcp_connection_t;
 
