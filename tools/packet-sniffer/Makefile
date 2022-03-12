@@ -15,7 +15,7 @@ SOURCES += $(LIB_SOURCES)
 OBJECTS = $(SOURCES:.c=.o)
 
 # Assign your project's output binary name
-OUT = ftp-cli
+OUT = packet-sniffer
 
 # SYSROOT_PATH is the path to sysroot of the target platform and
 # is set as an environment variable.
