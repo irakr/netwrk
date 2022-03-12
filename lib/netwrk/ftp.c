@@ -86,14 +86,14 @@ static int NK_ftp_parse_response(NK_ftp_connection_t *ftp_conn)
     char *recv_data;
     int ret;
 
-    if(!ftp_conn || !ftp_conn->tcp_conn
-        || IS_STR_NONE(ftp_conn->tcp_conn->recv_buff)
-        || (ftp_conn->tcp_conn->recv_data_len <= 0) )
+    if(!ftp_conn || !ftp_conn->ctl_conn
+        || IS_STR_NONE(ftp_conn->ctl_conn->recv_buff)
+        || (ftp_conn->ctl_conn->recv_data_len <= 0) )
     {
         return ERR_INVALID_PARAM;
     }
     
-    recv_data = ftp_conn->tcp_conn->recv_buff;
+    recv_data = ftp_conn->ctl_conn->recv_buff;
 
     ret = sscanf(recv_data, "%hd %[^\n]s", &ftp_conn->current_response.code,
                         ftp_conn->current_response.message);
@@ -111,7 +111,7 @@ int NK_ftp_parse_pasv(NK_ftp_connection_t *ftp_conn)
     char response_msg[MAX_LEN_RESPONSE_MESSAGE], *open_parenthesis,
          *close_parenthesis;
 
-    if(!ftp_conn || !ftp_conn->tcp_conn
+    if(!ftp_conn || !ftp_conn->ctl_conn
         || (ftp_conn->current_response.code != FTP_RESP_ENTER_PASV)
         || IS_STR_NONE(ftp_conn->current_response.message) )
     {
@@ -187,21 +187,21 @@ int NK_ftp_make_connection(NK_ftp_connection_t *ftp_conn,
         password = "anonymous@example.com";
     }
 
-    /* Make a TCP connection */
+    /* Make a TCP connection used for FTP commands. */
 
-    ftp_conn->tcp_conn = calloc(1, sizeof(NK_tcp_connection_t));
-    assert_msg((ftp_conn->tcp_conn != NULL), "ERROR: %s\n", strerror(errno));
+    ftp_conn->ctl_conn = calloc(1, sizeof(NK_tcp_connection_t));
+    assert_msg((ftp_conn->ctl_conn != NULL), "ERROR: %s\n", strerror(errno));
 
     ret = NK_tcp_make_connection(
-            ftp_conn->tcp_conn, remote_ip, remote_port, NULL);
+            ftp_conn->ctl_conn, remote_ip, remote_port, NULL);
     if(ret != 0)
         return ret;
     
     /* Optional: Save the banner message first */
     if(banner_msg && (banner_msg_len > 0)) {
-        ret = NK_tcp_recv_until(ftp_conn->tcp_conn, banner_msg,
+        ret = NK_tcp_recv_until(ftp_conn->ctl_conn, banner_msg,
                 banner_msg_len - 1, "\r\n");
-        NK_tcp_reset_recv_buff(ftp_conn->tcp_conn);
+        NK_tcp_reset_recv_buff(ftp_conn->ctl_conn);
     }
 
     response = &ftp_conn->current_response;
@@ -209,11 +209,11 @@ int NK_ftp_make_connection(NK_ftp_connection_t *ftp_conn,
     /* Login */
 
     sprintf(ftp_data_buff, "USER %s\r\n", user_name);
-    if((ret = NK_tcp_sendrecv(ftp_conn->tcp_conn, ftp_data_buff, strlen(ftp_data_buff)))
+    if((ret = NK_tcp_sendrecv(ftp_conn->ctl_conn, ftp_data_buff, strlen(ftp_data_buff)))
                     < 0)
     {
         if(ret == ERR_REMOTE_DEAD)
-            NK_tcp_destroy_connection(ftp_conn->tcp_conn);
+            NK_tcp_destroy_connection(ftp_conn->ctl_conn);
         return ret;
     }
     if((ret = NK_ftp_parse_response(ftp_conn)) < 0)
@@ -222,11 +222,11 @@ int NK_ftp_make_connection(NK_ftp_connection_t *ftp_conn,
         return ERR_AUTH_ERROR;
     
     sprintf(ftp_data_buff, "PASS %s\r\n", password);
-    if((ret = NK_tcp_sendrecv(ftp_conn->tcp_conn, ftp_data_buff, strlen(ftp_data_buff)))
+    if((ret = NK_tcp_sendrecv(ftp_conn->ctl_conn, ftp_data_buff, strlen(ftp_data_buff)))
                     < 0)
     {
         if(ret == ERR_REMOTE_DEAD)
-            NK_tcp_destroy_connection(ftp_conn->tcp_conn);
+            NK_tcp_destroy_connection(ftp_conn->ctl_conn);
         return ret;
     }
     if((ret = NK_ftp_parse_response(ftp_conn)) < 0)
@@ -254,7 +254,7 @@ int NK_ftp_change_dir(NK_ftp_connection_t *ftp_conn, const char *dir)
     response = &ftp_conn->current_response;
 
     sprintf(ftp_data_buff, "CWD %s\r\n", dir);
-    if((ret = NK_tcp_sendrecv(ftp_conn->tcp_conn, ftp_data_buff, strlen(ftp_data_buff)))
+    if((ret = NK_tcp_sendrecv(ftp_conn->ctl_conn, ftp_data_buff, strlen(ftp_data_buff)))
                     < 0)
     {
         return ret;
@@ -265,7 +265,7 @@ int NK_ftp_change_dir(NK_ftp_connection_t *ftp_conn, const char *dir)
         return ERR_COMMAND_FAILED;
     
     sprintf(ftp_data_buff, "PWD\r\n");
-    if((ret = NK_tcp_sendrecv(ftp_conn->tcp_conn, ftp_data_buff, strlen(ftp_data_buff)))
+    if((ret = NK_tcp_sendrecv(ftp_conn->ctl_conn, ftp_data_buff, strlen(ftp_data_buff)))
                     < 0)
     {
         return ret;
@@ -298,7 +298,7 @@ int NK_ftp_get_file(NK_ftp_connection_t *ftp_conn, const char *filename,
     
     /* We will consider Image/Binary type data for all data. */
     sprintf(ftp_data_buff, "TYPE I\r\n");
-    if((ret = NK_tcp_sendrecv(ftp_conn->tcp_conn, ftp_data_buff, strlen(ftp_data_buff)))
+    if((ret = NK_tcp_sendrecv(ftp_conn->ctl_conn, ftp_data_buff, strlen(ftp_data_buff)))
                     < 0)
     {
         return ret;
@@ -309,7 +309,7 @@ int NK_ftp_get_file(NK_ftp_connection_t *ftp_conn, const char *filename,
         return ERR_COMMAND_FAILED;
 
     sprintf(ftp_data_buff, "PASV\r\n");
-    if((ret = NK_tcp_sendrecv(ftp_conn->tcp_conn, ftp_data_buff, strlen(ftp_data_buff)))
+    if((ret = NK_tcp_sendrecv(ftp_conn->ctl_conn, ftp_data_buff, strlen(ftp_data_buff)))
                     < 0)
     {
         return ret;
@@ -329,7 +329,7 @@ int NK_ftp_get_file(NK_ftp_connection_t *ftp_conn, const char *filename,
     assert_msg((ftp_conn->data_conn != NULL), "ERROR: %s\n", strerror(errno));
     
     ret = NK_tcp_make_connection(
-            ftp_conn->data_conn, ftp_conn->tcp_conn->remote_ip,
+            ftp_conn->data_conn, ftp_conn->ctl_conn->remote_ip,
             ftp_conn->server_data_port, NULL);
     if(ret < 0)
         return ret;
@@ -337,7 +337,7 @@ int NK_ftp_get_file(NK_ftp_connection_t *ftp_conn, const char *filename,
     /* Send RETR command to initiate file download. */
 
     sprintf(ftp_data_buff, "RETR %s\r\n", filename);
-    if((ret = NK_tcp_sendrecv(ftp_conn->tcp_conn, ftp_data_buff, strlen(ftp_data_buff)))
+    if((ret = NK_tcp_sendrecv(ftp_conn->ctl_conn, ftp_data_buff, strlen(ftp_data_buff)))
                     < 0)
     {
         return ret;

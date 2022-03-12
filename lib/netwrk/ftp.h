@@ -65,7 +65,7 @@ typedef struct _NK_ftp_response_t {
  * FTP connection information
  */
 typedef struct _NK_ftp_connection_t {
-    NK_tcp_connection_t *tcp_conn, *data_conn;
+    NK_tcp_connection_t *ctl_conn, *data_conn;
 
 #define LOGIN_MODE_ANONYMOUS    1
 #define LOGIN_MODE_USER         2

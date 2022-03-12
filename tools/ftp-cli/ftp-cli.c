@@ -66,7 +66,7 @@ int main(int argc, const char *argv[])
 	/* End connection. */
 
 	printf("Closing connection...");
-	NK_tcp_destroy_connection(ftp_conn.tcp_conn);
+	NK_tcp_destroy_connection(ftp_conn.ctl_conn);
 	printf("DONE\n");
 
 	return 0;
