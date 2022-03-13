@@ -17,9 +17,8 @@ OBJECTS = $(SOURCES:.c=.o)
 # Assign your project's output binary name
 OUT = packet-sniffer
 
-# SYSROOT_PATH is the path to sysroot of the target platform and
-# is set as an environment variable.
-SYSROOT = --sysroot=$(SYSROOT_PATH)
+# Host platform/machine name
+THIS_PLATFORM = $(shell uname -m)
 
 #
 # PLATFORM is the part of the filename of a platform specific
@@ -29,13 +28,26 @@ SYSROOT = --sysroot=$(SYSROOT_PATH)
 # - PLATFORM == ""
 # - PLATFORM == "linux"
 #
+# Host platform is also considered linux-x86_64. So for
+# cross-compilation for ARM or any other platform, SYSROOT_PATH
+# must be set.
+#
 ifeq ("$(PLATFORM)","")
 override PLATFORM=linux-x86_64
 else ifeq ("$(PLATFORM)","linux")
 override PLATFORM=linux-x86_64
+else
+ifndef SYSROOT_PATH
+$(error SYSROOT_PATH is not set)
+endif
 endif
 
 include $(PLATFORM).mk
+
+# SYSROOT_PATH is the path to sysroot of the target platform and
+# is set as an environment variable.
+SYSROOT = --sysroot=$(SYSROOT_PATH)
+
 
 # TOOLCHAIN_PREFIX is set by platform specific mk files.
 # By default it uses this system's toolchain, i.e., TOOLCHAIN_PREFIX is empty.

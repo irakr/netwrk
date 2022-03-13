@@ -1,6 +1,7 @@
 general:
 - When building, make should take only the dependent code from lib/netwrk.
 - Add signal handlers. SIGABRT, SIGKILL, etc to properly handle signals.
+- Implement logger module.
 - Argument check at the beginning of any critical function must assert(), if invalid.
 - Implement a thread safe buffer data structure.
 - Integrate command line parsing to read options. getopt().
@@ -14,6 +15,8 @@ ftp-cli:
 - Show download progress. Eg: Percentage.
 - Implement ring buffer for the internal recv buffer.
 
+packet-sniffer:
+- Integrated pcap support. -> Use libpcap.
 
 ISSUES
 - Careful: recv() on the same socket is being called simultaneously.
