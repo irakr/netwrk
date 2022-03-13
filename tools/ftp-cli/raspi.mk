@@ -1,7 +1,6 @@
 TOOLCHAIN_PREFIX = arm-linux-gnueabihf-
 
-PLATFORM_INCLUDES = -I$(SYSROOT_PATH)/usr/include/arm-linux-gnueabihf \
-	-I$(SYSROOT_PATH)/usr/include/arm-linux-gnueabihf/glib-2.0/include
+PLATFORM_INCLUDES = -I$(SYSROOT_PATH)/usr/include/arm-linux-gnueabihf
 
 # Library linkages
 PLATFORM_LIBS = -L$(SYSROOT_PATH)/usr/lib/arm-linux-gnueabihf 	\
