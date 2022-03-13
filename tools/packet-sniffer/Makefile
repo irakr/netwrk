@@ -57,7 +57,7 @@ AR = $(TOOLCHAIN_PREFIX)ar
 
 LIBS = -L$(SYSROOT_DIR)/usr/local/lib \
 	-Wl,--start-group \
-	-lpthread -lglib-2.0 \
+	-lpthread \
 	-Wl,--end-group \
 	$(PLATFORM_LIBS)
 
