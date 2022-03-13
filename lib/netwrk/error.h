@@ -43,7 +43,8 @@
 #define ERR_NET_INVALID_INTF            -22
 #define ERR_NET_BIND_FAILED             -23
 #define ERR_NET_SOCKET_FAILED           -24
+#define ERR_NET_INVALID_PROTOCOL        -25
 
 /* Operating system specific error codes    */
-#define ERR_SYS_IOCTL_FAILED            -25
+#define ERR_SYS_IOCTL_FAILED            -26
 

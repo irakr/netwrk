@@ -8,6 +8,7 @@
 #include <sys/ioctl.h>
 #include <net/if.h>	/* For struct ifreq	*/
 #include <net/ethernet.h>
+#include <linux/ip.h>   /* For struct iphdr */
 
 /**
  * @brief Returns the index of the interface @if_name.
