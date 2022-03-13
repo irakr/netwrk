@@ -1,4 +1,5 @@
 general:
+- When building, make should take only the dependent code from lib/netwrk.
 - Add signal handlers. SIGABRT, SIGKILL, etc to properly handle signals.
 - Argument check at the beginning of any critical function must assert(), if invalid.
 - Implement a thread safe buffer data structure.
@@ -16,4 +17,6 @@ ftp-cli:
 
 ISSUES
 - Careful: recv() on the same socket is being called simultaneously.
+- FD_ZERO() issue for raspi/ARM platform.
+  Error: error: impossible constraint in ‘asm’
 

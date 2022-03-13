@@ -15,10 +15,7 @@
 #define assert_msg(cond, format_str, ...)   \
         assert(cond || (fprintf(stderr, format_str, __VA_ARGS__)) )
 
-/**
- * @brief Error codes
- * 
- */
+/* General error codes */
 #define ERR_OK                          0
 #define ERR_UNKNOWN                     -1
 #define ERR_INVALID_PARAM               -2
@@ -41,3 +38,12 @@
 #define ERR_COMMAND_FAILED              -19
 #define ERR_FILE_OPEN_ERROR             -20
 #define ERR_INDEX_OUT_OF_BOUND          -21
+
+/* Network error codes  */
+#define ERR_NET_INVALID_INTF            -22
+#define ERR_NET_BIND_FAILED             -23
+#define ERR_NET_SOCKET_FAILED           -24
+
+/* Operating system specific error codes    */
+#define ERR_SYS_IOCTL_FAILED            -25
+
