@@ -16,6 +16,16 @@ Example:
 ftp-cli ftp://134.119.8.75/zoc/zoc.exe
 ```
 
+2. **packet-sniffer**: A simple packet sniffer tool.
+```
+Usage(Requires root privilege):
+sudo packet-sniffer <interface-name>
+
+Example:
+sudo packet-sniffer eth0
+```
+
+
 **Steps to build**
 
 1. Each tool may be individually compiled. For example, ftp-cli is compiled as shown below: 

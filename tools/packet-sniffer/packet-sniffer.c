@@ -11,7 +11,7 @@
 #include <unistd.h>
 
 #define USAGE_STR	\
-	"packet-sniffer <packet-count> <capture-file>\n"
+	"sudo packet-sniffer <interface-name>\n"
 
 #define DEFAULT_PACKET_COUNT	10
 
