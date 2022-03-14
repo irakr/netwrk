@@ -17,6 +17,14 @@ ftp-cli:
 
 packet-sniffer:
 - Integrated pcap support. -> Use libpcap.
+- Implement generic functions to extract packet header information as string.
+- Implement IP header, Transport layer information print.
+
+ping:
+- TODO
+
+scan: (nmap)
+- TODO
 
 ISSUES
 - Careful: recv() on the same socket is being called simultaneously.
