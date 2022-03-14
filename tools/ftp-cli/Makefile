@@ -19,8 +19,9 @@ OUT = ftp-cli
 
 # SYSROOT_PATH is the path to sysroot of the target platform and
 # is set as an environment variable.
+ifdef PLATFORM
 SYSROOT = --sysroot=$(SYSROOT_PATH)
-
+endif
 #
 # PLATFORM is the part of the filename of a platform specific
 # makefile before .mk
